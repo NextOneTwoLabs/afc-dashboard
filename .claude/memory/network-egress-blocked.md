@@ -1,0 +1,1 @@
+Lesson: the cloud environment's network policy blocks en.wikipedia.org by default (egress proxy). Owner must add allowed domains in the environment settings (Network access > Custom > Allowed domains) before any source-reading work.

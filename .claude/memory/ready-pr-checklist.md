@@ -1,0 +1,1 @@
+Before listing a PR as ready: review approves current head; base is main (retarget stacked PRs as soon as the one below merges); CI green; merges cleanly with main and other ready PRs (git merge-tree); closingIssuesReferences exactly right (even 'does not close #N' closes #N).

@@ -1,0 +1,1 @@
+Lesson: agent worktrees are auto-removed when an agent finishes with no changes. A resumed SWE then has no worktree and may work in the TPM's main checkout. Before a resumed SWE builds, tell it to create its own worktree (git worktree add) on its own branch.
