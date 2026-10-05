@@ -3,6 +3,8 @@
 # push to main:
 #   build command:  npm run build
 #   deploy command: npx wrangler deploy
+# Pushes to other branches run `npx wrangler preview` instead, which needs the
+# [previews] block below.
 #
 # For now the Worker only serves the static site in dist/ (free static asset
 # requests, no Worker code runs). The planned /api layer adds `main = "worker/index.ts"`
@@ -14,3 +16,8 @@ compatibility_date = "2026-08-31"
 
 [assets]
 directory = "./dist"
+
+# Preview-only overrides (vars, bindings). Empty for now: there are no bindings,
+# and assets/compatibility settings stay at the top level. `wrangler preview`
+# refuses to run without this block, even an empty one.
+[previews]
