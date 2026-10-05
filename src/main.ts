@@ -11,27 +11,22 @@ import { matches } from "./views/matches";
 import { overview } from "./views/overview";
 import { records } from "./views/records";
 import { team } from "./views/team";
+import { TABS, resolve } from "./routes";
 
 // ?demo loads the fictional fixture (years 2099/2101) for UI development.
 const demo = new URLSearchParams(location.search).has("demo");
 const ds: Dataset = demo ? buildDataset(teamsCsv, demoEditions, demoMatches) : buildDataset(teamsCsv, editionsCsv, matchesCsv);
 
-const TABS = [
-  ["overview", "Overview"],
-  ["edition", "Editions"],
-  ["team", "Teams"],
-  ["h2h", "Head-to-head"],
-  ["matches", "Matches"],
-  ["records", "Records"],
-] as const;
-
 const app = document.getElementById("app")!;
 const nav = document.getElementById("tabs")!;
 
 function route() {
-  const [path, query = ""] = location.hash.replace(/^#\/?/, "").split("?");
-  const [view = "overview", a, b] = path.split("/").filter(Boolean).map(decodeURIComponent);
-  const q = new URLSearchParams(query);
+  const r = resolve(location.hash, { years: ds.editions.map((e) => e.year), hasTeam: (c) => ds.teams.has(c), focus: "HKG" });
+  if ("redirect" in r) {
+    history.replaceState(null, "", r.redirect);
+    return route();
+  }
+  const { view, args: [a, b], query: q } = r.route;
 
   const html =
     view === "edition" ? edition(ds, a)
