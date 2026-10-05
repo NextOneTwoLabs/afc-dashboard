@@ -35,7 +35,7 @@ export function matchTable(ds: Dataset, matches: Match[], opts: { perspective?: 
       const src = m.source ? ` <a href="${esc(m.source)}" target="_blank" rel="noopener" title="Source" aria-label="Source">↗</a>` : "";
       return `<tr class="${hk ? "hk" : ""}">
         <td>${esc(fmtDate(m.date))}</td>
-        ${showEdition ? `<td class="hide-sm"><a href="#/edition/${m.year}">${m.year}</a> <span class="muted small">${phaseLabel(m.phase)}</span></td>` : ""}
+        ${showEdition ? `<td class="hide-sm"><a href="#/events/${m.year}">${m.year}</a> <span class="muted small">${phaseLabel(m.phase)}</span></td>` : ""}
         <td class="hide-sm">${esc(stage(m))}</td>
         ${perspective ? `<td>${resBadge(outcome(m, perspective))}</td>` : ""}
         <td class="home">${teamLink(ds, m.home)}</td>

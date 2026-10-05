@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { TABS, resolve, type RouteContext } from "../src/routes";
+import type { Match } from "../src/model";
+import { TABS, latestEventYear, resolve, type RouteContext } from "../src/routes";
+import { loadDataset } from "./load";
 
 const ctx: RouteContext = {
   years: [2005, 2024, 2026, 2027],
@@ -59,5 +61,29 @@ describe("routes", () => {
   ];
   it.each(redirects)("redirects %s to %s", (from, to) => {
     expect(go(from)).toBe(to);
+  });
+});
+
+describe("latestEventYear (the default page)", () => {
+  const base = loadDataset("data");
+  // Built from the real editions so the test doesn't depend on which results have been entered.
+  const m = (year: number, phase: "final" | "qualifying"): Match => ({
+    id: `${year}-x`, year, phase, round: "Round 1", group: "A", date: `${year - 1}-10-01`, venue: "", home: "HKG", away: "JPN", hs: 0, as: 1, aet: false, notes: "", source: "",
+  });
+
+  it("is the latest edition with matches: 2026 without any 2027 rows", () => {
+    expect(latestEventYear(base.editions, [m(2024, "final"), m(2026, "final")])).toBe(2026);
+  });
+
+  it("moves to 2027 as soon as one 2027 match (a qualifier) is in the data", () => {
+    expect(latestEventYear(base.editions, [m(2024, "final"), m(2026, "final"), m(2027, "qualifying")])).toBe(2027);
+  });
+
+  it("falls back to the latest completed edition when there are no matches", () => {
+    expect(latestEventYear(base.editions, [])).toBe(2026);
+  });
+
+  it("ignores matches for years with no edition row", () => {
+    expect(latestEventYear(base.editions, [m(2026, "final"), m(2031, "final")])).toBe(2026);
   });
 });
