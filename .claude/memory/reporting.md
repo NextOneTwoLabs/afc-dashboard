@@ -1,0 +1,1 @@
+Reporting: decisions/actions for the owner go in a bold line at the top with options and a recommendation. Ready PRs get a full GitHub link, merge order if it matters, and one plain line on what visitors will notice. Plain and brief; no internal IDs, shas or jargon. Report idle engineers at once with a proposed next task. One task per SWE; read-only work while waiting on review.
