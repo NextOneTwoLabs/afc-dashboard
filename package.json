@@ -1,0 +1,20 @@
+{
+  "name": "afc-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "History dashboard for the AFC U-17 Women's Asian Cup (incl. the U-16 era and qualifiers)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "check": "tsc --noEmit && vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.3",
+    "vitest": "^3.2.4"
+  }
+}
