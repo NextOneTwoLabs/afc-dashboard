@@ -1,0 +1,16 @@
+# Cloudflare Workers config. Deployed by Workers Builds (Cloudflare dashboard ->
+# Workers & Pages -> afc-dashboard -> Settings -> Build), which runs on every
+# push to main:
+#   build command:  npm run build
+#   deploy command: npx wrangler deploy
+#
+# For now the Worker only serves the static site in dist/ (free static asset
+# requests, no Worker code runs). The planned /api layer adds `main = "worker/index.ts"`
+# and `run_worker_first = ["/api/*"]` here, so pages stay static and only API calls
+# invoke the Worker.
+
+name = "afc-dashboard"
+compatibility_date = "2026-08-31"
+
+[assets]
+directory = "./dist"

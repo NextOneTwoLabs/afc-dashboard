@@ -46,4 +46,16 @@ npm test         # data + stats checks
 npm run build    # static site in dist/
 ```
 
-Pushing to `main` runs the tests and deploys to GitHub Pages (`.github/workflows/deploy.yml`). One-time setup: **Settings → Pages → Source: GitHub Actions**.
+## Deploy (Cloudflare Workers)
+
+The site runs on Cloudflare Workers as static assets (`wrangler.toml`). Deploys are done by
+**Workers Builds**, Cloudflare's GitHub integration, the same way as `ecnl-dashboard`:
+
+1. Cloudflare dashboard → **Workers & Pages → Create → Import a repository** → `NextOneTwoLabs/afc-dashboard`.
+2. Project name `afc-dashboard`, build command `npm run build`, deploy command `npx wrangler deploy`.
+3. Every push to `main` then deploys to production; other branches get preview URLs.
+
+GitHub Actions (`.github/workflows/test.yml`) only runs the tests and a build check.
+
+Planned: an `/api` layer in the same Worker (`run_worker_first = ["/api/*"]`), with the data in D1 and
+server-side full-text search.
