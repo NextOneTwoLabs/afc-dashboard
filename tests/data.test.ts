@@ -58,5 +58,20 @@ for (const dir of ["data", "tests/fixtures"] as const) {
         }
       }
     });
+
+    it("gives every verified edition dates that hold its final-tournament matches", () => {
+      for (const e of ds.editions.filter((e) => e.verified)) {
+        const at = `${e.year} (verified)`;
+        expect(e.start, `${at}: start`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        expect(e.end, `${at}: end`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        expect(e.start <= e.end, `${at}: start after end`).toBe(true);
+        expect(e.start.slice(0, 4), `${at}: start year`).toBe(String(e.year));
+        expect(e.end.slice(0, 4), `${at}: end year`).toBe(String(e.year));
+        // Qualifiers are played outside these dates (often the year before), so only finals are checked.
+        for (const m of ds.matches.filter((m) => m.year === e.year && m.phase === "final")) {
+          expect(m.date >= e.start && m.date <= e.end, `${at}: match ${m.id} on ${m.date} outside ${e.start}–${e.end}`).toBe(true);
+        }
+      }
+    });
   });
 }
