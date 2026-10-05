@@ -1,1 +1,0 @@
-Team (fixed headcount, no new agents without owner OK): Yunchang and Yide are Staff SWEs, each working in their own git worktree (Agent tool, isolation worktree). Kongming is the Reviewer: reviews plans and code, posts verdicts on PRs, never writes fixes. Keep these names across restarts; resume with SendMessage, don't respawn. One agent per worktree or branch.
