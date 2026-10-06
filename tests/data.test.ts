@@ -1,6 +1,6 @@
 // Integrity checks on the real dataset in data/. Every rule here guards against a data-entry slip.
 import { describe, expect, it } from "vitest";
-import { isKnockout, winner } from "../src/stats";
+import { isKnockout, standings, winner } from "../src/stats";
 import { loadDataset } from "./load";
 
 for (const dir of ["data", "tests/fixtures"] as const) {
@@ -73,5 +73,44 @@ for (const dir of ["data", "tests/fixtures"] as const) {
         }
       }
     });
+
+    it("ranks a round-robin edition (no Final) as its recorded 1st–4th", () => {
+      // A completed edition with a champion but no Final was played as one group (2011).
+      // Its podium comes from the table, using the AFC tie-breakers in standings().
+      for (const e of ds.editions.filter((e) => e.status === "completed" && e.champion)) {
+        const finals = ds.matches.filter((m) => m.year === e.year && m.phase === "final");
+        if (finals.some((m) => m.round === "Final")) continue;
+        const at = `${e.year} (no Final)`;
+        expect(new Set(finals.map((m) => m.group)), `${at}: final phase should be one group`).toEqual(new Set(["A"]));
+        const table = standings(finals).map((r) => r.team);
+        expect(table.length, `${at}: teams in the table`).toBeGreaterThanOrEqual(4);
+        expect(table.slice(0, 4), `${at}: table top four vs podium`).toEqual([e.champion, e.runnerUp, e.third, e.fourth]);
+      }
+    });
   });
 }
+
+// Every finals match of these editions is in the data. Expected counts are the number of
+// match boxes on the pinned Wikipedia revision cited in editions.csv (infobox totals agree
+// where the page has them). Ids number each year's finals matches by date, and by the
+// page's order for matches on the same day; so the Third-place match is n-1 and the Final n.
+const FINALS_MATCHES: Record<number, number> = {
+  2005: 19, // oldid=1353122133
+  2007: 10, // oldid=1314720357
+  2009: 16, // oldid=1342516610
+  2011: 15, // oldid=1373759728 (infobox: 15 matches)
+  2013: 16, // oldid=1353210957
+  2015: 16, // oldid=1343950455 (infobox: 16)
+  2017: 16, // oldid=1314726875 (infobox: 16)
+  2019: 16, // oldid=1354058524 (infobox: 16)
+};
+
+describe("finals completeness", () => {
+  const ds = loadDataset("data");
+  it.each(Object.entries(FINALS_MATCHES))("%s has all its finals matches", (year, n) => {
+    const ms = ds.matches.filter((m) => m.year === Number(year) && m.phase === "final");
+    expect(ms.length).toBe(n);
+    const ids = ms.map((m) => m.id).sort();
+    expect(ids).toEqual(Array.from({ length: n }, (_, i) => `${year}-F-${String(i + 1).padStart(2, "0")}`));
+  });
+});
