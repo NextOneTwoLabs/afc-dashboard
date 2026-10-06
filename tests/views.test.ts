@@ -33,6 +33,10 @@ describe("views on the demo fixture", () => {
     expect(plain).toContain("Longest unbeaten run");
   });
 
+  it("labels the editions tile as editions held", () => {
+    expect(events(ds)).toContain("Editions held");
+  });
+
   it("ignores an invalid or identical opponent", () => {
     expect(team(ds, "HKG", "HKG")).not.toContain("compared with");
     expect(team(ds, "HKG", "XXX")).not.toContain("compared with");
@@ -54,3 +58,27 @@ for (const dir of ["data", "tests/fixtures"] as const) {
     });
   });
 }
+
+describe("2027 event page while only qualifiers are in the data", () => {
+  const real = loadDataset("data");
+  const html = edition(real, "2027");
+  const groupTable = (h: string, g: string) => {
+    const start = h.indexOf(`Round 1 · Group ${g}<`);
+    return start < 0 ? "" : h.slice(start, h.indexOf("</table>", start));
+  };
+
+  it("shows a one-line note instead of the 'not played yet' box", () => {
+    expect(html).not.toContain("hasn't been played yet");
+    expect(html).toContain("Final tournament not yet held");
+  });
+
+  it("still marks a cancelled edition as cancelled", () => {
+    expect(edition(real, "2022")).toContain("This edition was cancelled.");
+  });
+
+  it("lists drawn teams that have not played yet in their group table", () => {
+    const g = groupTable(html, "G");
+    expect(g, "Group G table").not.toBe("");
+    for (const name of ["Myanmar", "Guam", "Hong Kong"]) expect(g, `Group G lists ${name}`).toContain(name);
+  });
+});
