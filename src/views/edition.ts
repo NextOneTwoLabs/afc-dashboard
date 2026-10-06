@@ -1,5 +1,5 @@
-import type { Dataset, Phase } from "../model";
-import { groups, isKnockout, standings } from "../stats";
+import type { Dataset, Edition, Phase } from "../model";
+import { groups, isKnockout, standings, winner } from "../stats";
 import { FOCUS, emptyData, esc, fmtDate, matchTable, teamLink } from "../ui";
 
 const KO_ORDER = ["Play-off", "Quarter-final", "Semi-final", "Third place", "Final"];
@@ -35,6 +35,24 @@ function phaseSection(ds: Dataset, year: number, phase: Phase): string {
     ${ko.length ? `<div class="card"><h3>Knockout</h3>${matchTable(ds, ko, { showEdition: false })}</div>` : ""}`;
 }
 
+/**
+ * With no third-place match and no recorded 3rd/4th, the two semi-final losers share third
+ * (2026). Only when exactly two losers can be determined; otherwise undefined, and the
+ * podium keeps its "—" places.
+ */
+function jointSemiFinalists(ds: Dataset, ed: Edition): string[] | undefined {
+  if (ed.status !== "completed" || ed.third || ed.fourth) return undefined;
+  const ko = ds.matches.filter((m) => m.year === ed.year && m.phase === "final");
+  if (ko.some((m) => m.round === "Third place")) return undefined;
+  const losers = ko
+    .filter((m) => m.round === "Semi-final")
+    .map((m) => {
+      const w = winner(m);
+      return w && (w === m.home ? m.away : m.home);
+    });
+  return losers.length === 2 && losers.every(Boolean) && losers[0] !== losers[1] ? (losers as string[]) : undefined;
+}
+
 export function edition(ds: Dataset, yearParam?: string): string {
   const eds = ds.editions;
   const ed = eds.find((e) => String(e.year) === yearParam) ?? [...eds].reverse().find((e) => e.status === "completed") ?? eds[0];
@@ -42,13 +60,18 @@ export function edition(ds: Dataset, yearParam?: string): string {
 
   const chips = `<div class="chips">${eds.map((e) => `<a class="chip" href="#/events/${e.year}" ${e === ed ? 'aria-current="page"' : ""}>${e.year}</a>`).join("")}</div>`;
   const dates = ed.start ? `${fmtDate(ed.start)} – ${fmtDate(ed.end)}` : "Dates to be added";
+  const joint = jointSemiFinalists(ds, ed);
   const podium =
     ed.status === "completed"
       ? `<div class="podium">
           <div><div class="k">🏆 Champion</div>${teamLink(ds, ed.champion)}</div>
           <div><div class="k">🥈 Runner-up</div>${teamLink(ds, ed.runnerUp)}</div>
-          <div><div class="k">🥉 Third</div>${teamLink(ds, ed.third)}</div>
-          <div><div class="k">Fourth</div>${teamLink(ds, ed.fourth)}</div></div>`
+          ${
+            joint
+              ? `<div><div class="k">Joint semi-finalists</div>${joint.map((t) => teamLink(ds, t)).join(" · ")}</div>`
+              : `<div><div class="k">🥉 Third</div>${teamLink(ds, ed.third)}</div>
+          <div><div class="k">Fourth</div>${teamLink(ds, ed.fourth)}</div>`
+          }</div>`
       : ed.status === "cancelled"
         ? `<div class="empty">This edition was cancelled.</div>`
         : ds.matches.some((m) => m.year === ed.year)
