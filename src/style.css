@@ -178,6 +178,7 @@ footer { border-top: 1px solid var(--border); color: var(--text-muted); font-siz
 @media (max-width: 560px) {
   h1 { font-size: 20px; }
   .chart text { font-size: 21px; }
+  .chart text.thin { display: none; }
   .hide-sm { display: none; }
   th, td { padding: 6px 5px; }
 }

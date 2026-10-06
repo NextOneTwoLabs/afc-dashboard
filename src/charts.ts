@@ -46,14 +46,22 @@ export function barChart(bars: Bar[], opts: { height?: number; title: string; fm
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.title)}">${grid}<line class="axis" x1="${pad.l}" x2="${W - pad.r}" y1="${pad.t + ih}" y2="${pad.t + ih}"/>${marks}</svg>`;
 }
 
-/** Which x labels to show on a phone (true = shown). Today: all of them. */
-export function thinLabels(n: number, _maxLabels: number): boolean[] {
-  return Array.from({ length: n }, () => true);
+/**
+ * Which x labels to show on a phone (true = shown): every k-th label counted back from the
+ * last, so the most recent edition is always labelled and no two shown labels are neighbours.
+ * The others are still drawn (class "thin") and hidden only at phone width.
+ */
+export function thinLabels(n: number, maxLabels: number): boolean[] {
+  const k = Math.max(1, Math.ceil(n / maxLabels));
+  return Array.from({ length: n }, (_, i) => (n - 1 - i) % k === 0);
 }
 
-/** Left margin (chart units) for the level labels. Today: fixed. */
-export function levelPad(_levels: readonly string[]): number {
-  return 130;
+/** Width of one label character at the phone font size (21px in a 640-unit chart). */
+const CHAR_W = 12.6;
+
+/** Left margin (chart units) wide enough for the longest level label at phone size. */
+export function levelPad(levels: readonly string[]): number {
+  return Math.max(130, Math.ceil(Math.max(0, ...levels.map((l) => l.length)) * CHAR_W + 8));
 }
 
 /** Labels shown on a phone, at most. */
