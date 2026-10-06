@@ -68,7 +68,7 @@ export function team(ds: Dataset, codeParam?: string, oppParam?: string): string
       const f = record(ym.filter((m) => m.phase === "final"), code);
       const fin = e.status === "scheduled" ? "In progress" : e.status === "cancelled" ? "Cancelled" : finish(ds, e, code);
       if (!ym.length && (!fin || fin === "Did not enter")) return "";
-      const cell = (r: typeof q) => (r.p ? `${r.w}-${r.d}-${r.l} <span class="muted small">(${r.gf}:${r.ga})</span>` : `<span class="muted">—</span>`);
+      const cell = (r: typeof q) => (r.p ? `${r.w}-${r.d}-${r.l}<span class="muted small hide-sm"> (${r.gf}:${r.ga})</span>` : `<span class="muted">—</span>`);
       return `<tr><td><a href="#/events/${e.year}">${e.year}</a></td><td>${cell(q)}</td><td>${cell(f)}</td><td>${esc(fin ?? "")}</td></tr>`;
     })
     .join("");
@@ -85,7 +85,7 @@ export function team(ds: Dataset, codeParam?: string, oppParam?: string): string
     ${opp ? comparison(ds, code, opp) : ""}
     <div class="grid cols-2">${chart}<div class="card"><h2>By edition</h2>${
       byYear
-        ? `<div class="table-wrap"><table><thead><tr><th>Year</th><th>Qualifiers W-D-L</th><th>Finals W-D-L</th><th>Finish</th></tr></thead><tbody>${byYear}</tbody></table></div>`
+        ? `<div class="table-wrap"><table><thead><tr><th>Year</th><th><span class="hide-sm">Qualifiers W-D-L</span><span class="hide-lg">Qual.</span></th><th><span class="hide-sm">Finals W-D-L</span><span class="hide-lg">Finals</span></th><th>Finish</th></tr></thead><tbody>${byYear}</tbody></table></div>`
         : `<div class="empty">No results yet.</div>`
     }</div></div>
     <div class="grid cols-2">${winsCard}</div>
