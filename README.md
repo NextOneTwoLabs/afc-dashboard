@@ -8,9 +8,14 @@ A static dashboard of every AFC women's under-17 championship, **qualifiers incl
 | 2007–2019 | AFC U-16 Women's Championship |
 | 2024– | AFC U-17 Women's Asian Cup (2022 edition cancelled) |
 
-Views: **Overview** (champions, medal table, goals trend, Hong Kong spotlight) · **Editions** (group tables, knockout, qualifiers) · **Teams** (record and finish by edition) · **Head-to-head** · **Matches** (filterable) · **Records**.
+A research reference with two views:
 
-Hong Kong is the spotlight team (`FOCUS` in `src/ui.ts`): its rows are highlighted everywhere and it's the default team on the Teams and Head-to-head views.
+- **Events**: the site opens on the most recent event (the latest edition with any match in the data; `latestEventYear` in `src/routes.ts`), with its podium, group tables, knockout and qualifiers. **All events** (`#/events`) lists every edition with champions, the medal table, the goals trend and all-time records.
+- **Teams**: a team's record, finish by edition, biggest wins, longest unbeaten run and all its matches, plus **Compare with…** for its head-to-head record against one opponent.
+
+Routes are `#/events`, `#/events/<year>`, `#/team/<code>` and `#/team/<code>/vs/<code>`. Links to the old views (`#/overview`, `#/edition`, `#/h2h`, `#/matches`, `#/records`) redirect to the matching new page.
+
+Hong Kong is the focus team (`FOCUS` in `src/ui.ts`): its rows are highlighted everywhere and it's the default team on the Teams view.
 
 ## Data
 
@@ -42,7 +47,7 @@ Conventions: shoot-out results count as **draws** in records; group tables use A
 ```sh
 npm install
 npm run dev      # http://localhost:5173  — add ?demo to preview with fictional data
-npm test         # data + stats checks
+npm test         # data, stats, routes and views checks
 npm run build    # static site in dist/
 ```
 

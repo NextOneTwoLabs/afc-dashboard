@@ -5,41 +5,34 @@ import matchesCsv from "../data/matches.csv?raw";
 import teamsCsv from "../data/teams.csv?raw";
 import demoEditions from "../tests/fixtures/editions.csv?raw";
 import demoMatches from "../tests/fixtures/matches.csv?raw";
+import { TABS, latestEventYear, resolve } from "./routes";
 import { edition } from "./views/edition";
-import { h2h } from "./views/h2h";
-import { matches } from "./views/matches";
-import { overview } from "./views/overview";
-import { records } from "./views/records";
+import { events } from "./views/events";
 import { team } from "./views/team";
+import { FOCUS } from "./ui";
 
 // ?demo loads the fictional fixture (years 2099/2101) for UI development.
 const demo = new URLSearchParams(location.search).has("demo");
 const ds: Dataset = demo ? buildDataset(teamsCsv, demoEditions, demoMatches) : buildDataset(teamsCsv, editionsCsv, matchesCsv);
 
-const TABS = [
-  ["overview", "Overview"],
-  ["edition", "Editions"],
-  ["team", "Teams"],
-  ["h2h", "Head-to-head"],
-  ["matches", "Matches"],
-  ["records", "Records"],
-] as const;
-
 const app = document.getElementById("app")!;
 const nav = document.getElementById("tabs")!;
 
-function route() {
-  const [path, query = ""] = location.hash.replace(/^#\/?/, "").split("?");
-  const [view = "overview", a, b] = path.split("/").filter(Boolean).map(decodeURIComponent);
-  const q = new URLSearchParams(query);
+const ctx = {
+  years: ds.editions.map((e) => e.year),
+  hasTeam: (c: string) => ds.teams.has(c),
+  focus: FOCUS,
+  latest: latestEventYear(ds.editions, ds.matches),
+};
 
-  const html =
-    view === "edition" ? edition(ds, a)
-    : view === "team" ? team(ds, a)
-    : view === "h2h" ? h2h(ds, a, b)
-    : view === "matches" ? matches(ds, q)
-    : view === "records" ? records(ds)
-    : overview(ds);
+function route() {
+  const r = resolve(location.hash, ctx);
+  if ("redirect" in r) {
+    history.replaceState(null, "", r.redirect);
+    return route();
+  }
+  const { view, args } = r.route;
+  const html = view === "team" ? team(ds, args[0], args[2]) : args.length ? edition(ds, args[0]) : events(ds);
 
   const banner = demo
     ? `<div class="banner"><strong>Demo data.</strong> Fictional results (years 2099 and 2101) for previewing the layout. <a href="./">Show real data</a></div>`
@@ -48,35 +41,22 @@ function route() {
       : "";
 
   app.innerHTML = banner + html;
-  const current = TABS.some(([k]) => k === view) ? view : "overview";
-  nav.innerHTML = TABS.map(([k, label]) => `<a href="#/${k}" ${k === current ? 'aria-current="page"' : ""}>${label}</a>`).join("");
-  document.title = `${TABS.find(([k]) => k === current)![1]} · Women's U-17 Asian Cup history`;
-  bind();
+  nav.innerHTML = TABS.map(([k, label]) => `<a href="#/${k}" ${k === view ? 'aria-current="page"' : ""}>${label}</a>`).join("");
+  const page = view === "team" ? (ds.teams.get(args[0])?.name ?? "Teams") : args.length ? `${args[0]} · Events` : "All events";
+  document.title = `${page} · Women's U-17 Asian Cup history`;
+  bind(view === "team" ? args[0] : undefined, args[2]);
 }
 
-function bind() {
+function bind(code?: string, opp?: string) {
   const go = (h: string) => (location.hash = h);
-  document.getElementById("team-pick")?.addEventListener("change", (e) => go(`#/team/${(e.target as HTMLSelectElement).value}`));
-  const a = document.getElementById("h2h-a") as HTMLSelectElement | null;
-  const b = document.getElementById("h2h-b") as HTMLSelectElement | null;
-  for (const s of [a, b]) s?.addEventListener("change", () => go(`#/h2h/${a!.value}/${b!.value}`));
-  const form = document.getElementById("match-filters") as HTMLFormElement | null;
-  if (form) {
-    const update = () => {
-      const p = new URLSearchParams();
-      for (const [k, v] of new FormData(form)) if (v) p.set(k, String(v));
-      history.replaceState(null, "", `#/matches?${p}`);
-      route();
-      const input = document.querySelector<HTMLInputElement>('#match-filters input[name="q"]');
-      if (input && document.activeElement !== input && p.has("q")) {
-        input.focus();
-        input.setSelectionRange(input.value.length, input.value.length);
-      }
-    };
-    form.addEventListener("change", update);
-    form.addEventListener("input", (e) => (e.target as HTMLElement).matches("input") && update());
-    form.addEventListener("submit", (e) => e.preventDefault());
-  }
+  document.getElementById("team-pick")?.addEventListener("change", (e) => {
+    const t = (e.target as HTMLSelectElement).value;
+    go(opp && opp !== t ? `#/team/${t}/vs/${opp}` : `#/team/${t}`);
+  });
+  document.getElementById("compare-pick")?.addEventListener("change", (e) => {
+    const o = (e.target as HTMLSelectElement).value;
+    go(o ? `#/team/${code}/vs/${o}` : `#/team/${code}`);
+  });
 }
 
 // One tooltip for every chart mark carrying data-tip.

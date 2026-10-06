@@ -38,7 +38,7 @@ export function edition(ds: Dataset, yearParam?: string): string {
   const ed = eds.find((e) => String(e.year) === yearParam) ?? [...eds].reverse().find((e) => e.status === "completed") ?? eds[0];
   if (!ed) return emptyData();
 
-  const chips = `<div class="chips">${eds.map((e) => `<a class="chip" href="#/edition/${e.year}" ${e === ed ? 'aria-current="page"' : ""}>${e.year}</a>`).join("")}</div>`;
+  const chips = `<div class="chips">${eds.map((e) => `<a class="chip" href="#/events/${e.year}" ${e === ed ? 'aria-current="page"' : ""}>${e.year}</a>`).join("")}</div>`;
   const dates = ed.start ? `${fmtDate(ed.start)} – ${fmtDate(ed.end)}` : "Dates to be added";
   const podium =
     ed.status === "completed"
@@ -51,7 +51,7 @@ export function edition(ds: Dataset, yearParam?: string): string {
 
   const body = phaseSection(ds, ed.year, "final") + phaseSection(ds, ed.year, "qualifying");
 
-  return `${chips}<h1>${ed.year} ${esc(ed.name)}</h1>
+  return `<p class="small" style="margin:0 0 8px"><a href="#/events">← All events</a></p>${chips}<h1>${ed.year} ${esc(ed.name)}</h1>
     <p class="lede">U-${ed.ageLimit} · Hosted by ${esc(ed.host)} · ${esc(dates)}
       ${ed.verified ? "" : ` <span class="badge warn" title="Not yet checked against sources">unverified</span>`}
       ${ed.source ? ` · <a href="${esc(ed.source)}" target="_blank" rel="noopener">Source ↗</a>` : ""}</p>
