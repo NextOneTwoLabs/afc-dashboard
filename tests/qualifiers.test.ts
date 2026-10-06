@@ -1,4 +1,4 @@
-// Checks for the 2027 qualifiers (issue #9) and a guard against blank scores.
+// Checks for the qualifiers (issues #9 and #16) and a guard against blank scores.
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -59,3 +59,34 @@ for (const dir of ["data", "tests/fixtures"]) {
     }
   });
 }
+
+// Hong Kong's qualifier matches for past editions (issue #16), from the pinned Wikipedia
+// revisions of each "<edition> AFC U-16 Women's Championship qualification" /
+// "AFC U-17 Women's Asian Cup qualification" page. Ids are <year>-Q-R<round>-<group>-<nn>,
+// where <nn> is the match's place in its group's full fixture list (by date, then the
+// page's order on the same day), so the rest of each group fits in without renumbering.
+const HKG_QUALIFIERS: Record<number, string[]> = {
+  // oldid 1371433914 (Group D, in Guam)
+  2013: ["2013-Q-R1-D-01", "2013-Q-R1-D-02"],
+  // oldid 1332487635
+  2015: ["2015-Q-R1-C-02", "2015-Q-R1-C-04", "2015-Q-R1-C-06"],
+  // oldid 1373231566
+  2017: ["2017-Q-R1-D-02", "2017-Q-R1-D-05", "2017-Q-R1-D-08", "2017-Q-R1-D-10", "2017-Q-R1-D-15"],
+  // oldid 1355020762 (first round only; Hong Kong did not reach round 2)
+  2019: ["2019-Q-R1-B-01", "2019-Q-R1-B-04", "2019-Q-R1-B-07", "2019-Q-R1-B-09"],
+  // oldid 1343613819 (first round only)
+  2024: ["2024-Q-R1-E-02", "2024-Q-R1-E-03"],
+  // oldid 1364402581
+  2026: ["2026-Q-R1-D-02", "2026-Q-R1-D-03"],
+};
+
+describe("Hong Kong qualifiers, past editions", () => {
+  const ms = loadDataset("data").matches.filter((m) => m.phase === "qualifying" && (m.home === "HKG" || m.away === "HKG"));
+
+  for (const [year, ids] of Object.entries(HKG_QUALIFIERS)) {
+    it(`has Hong Kong's ${ids.length} qualifier matches for ${year}`, () => {
+      const got = ms.filter((m) => m.year === Number(year)).map((m) => m.id).sort();
+      expect(got, `${year} Hong Kong qualifier ids`).toEqual([...ids].sort());
+    });
+  }
+});
