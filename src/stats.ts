@@ -158,7 +158,8 @@ export function teamSummary(ds: Dataset, code: string): TeamSummary {
     code,
     finals: record(ds.matches.filter((m) => m.phase === "final"), code),
     qualifying: record(ds.matches.filter((m) => m.phase === "qualifying"), code),
-    appearances: new Set(ds.matches.filter((m) => m.phase === "final" && involves(m, code)).map((m) => m.year)).size,
+    // Completed editions with a finals-level finish: a podium place counts even without match rows.
+    appearances: fins.filter((f) => FINISHES.indexOf(f) <= FINISHES.indexOf("Group stage")).length,
     titles: ds.editions.filter((e) => e.champion === code).length,
     best,
   };
