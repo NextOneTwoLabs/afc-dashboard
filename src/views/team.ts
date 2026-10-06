@@ -4,7 +4,12 @@ import { FINISHES, activeTeams, biggestWins, finish, involves, outcome, record, 
 import { FOCUS, esc, fmtDate, matchTable, teamLink, teamName } from "../ui";
 
 export function teamSelect(ds: Dataset, current: string, id: string, label: string, opts: { blank?: boolean; exclude?: string } = {}): string {
-  const codes = (activeTeams(ds).length ? activeTeams(ds) : [...ds.teams.keys()]).filter((c) => c !== opts.exclude);
+  const active = activeTeams(ds).length ? activeTeams(ds) : [...ds.teams.keys()];
+  // Always list the team being viewed, even one with no matches or podium place yet.
+  const all = current && ds.teams.has(current) && !active.includes(current) ? [...active, current] : active;
+  const codes = all
+    .filter((c) => c !== opts.exclude)
+    .sort((a, b) => teamName(ds, a).localeCompare(teamName(ds, b)));
   return `<label>${esc(label)}<select id="${id}">${opts.blank ? `<option value="" ${current ? "" : "selected"}>—</option>` : ""}${codes
     .map((c) => `<option value="${esc(c)}" ${c === current ? "selected" : ""}>${esc(ds.teams.get(c)?.flag ?? "")} ${esc(teamName(ds, c))}</option>`)
     .join("")}</select></label>`;
