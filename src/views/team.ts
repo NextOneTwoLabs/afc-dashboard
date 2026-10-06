@@ -58,12 +58,15 @@ export function team(ds: Dataset, codeParam?: string, oppParam?: string): string
   const chart = `<div class="card"><h2>Finish by edition</h2>${ordinalChart(points, levels, { title: `${t.name} finish at each edition` })}
     <p class="small muted" style="margin:6px 0 0">No dot = did not enter, or no data yet for that edition.</p></div>`;
 
-  const byYear = held
+  // Completed editions, plus any other edition the team has played in (e.g. qualifiers under way),
+  // so every match counted in the tiles has a row here.
+  const byYear = ds.editions
+    .filter((e) => e.status === "completed" || ms.some((m) => m.year === e.year))
     .map((e) => {
       const ym = ms.filter((m) => m.year === e.year);
       const q = record(ym.filter((m) => m.phase === "qualifying"), code);
       const f = record(ym.filter((m) => m.phase === "final"), code);
-      const fin = finish(ds, e, code);
+      const fin = e.status === "scheduled" ? "In progress" : e.status === "cancelled" ? "Cancelled" : finish(ds, e, code);
       if (!ym.length && (!fin || fin === "Did not enter")) return "";
       const cell = (r: typeof q) => (r.p ? `${r.w}-${r.d}-${r.l} <span class="muted small">(${r.gf}:${r.ga})</span>` : `<span class="muted">—</span>`);
       return `<tr><td><a href="#/events/${e.year}">${e.year}</a></td><td>${cell(q)}</td><td>${cell(f)}</td><td>${esc(fin ?? "")}</td></tr>`;
