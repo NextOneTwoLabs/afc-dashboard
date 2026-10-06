@@ -90,3 +90,21 @@ describe("Hong Kong qualifiers, past editions", () => {
     });
   }
 });
+
+// All qualifier matches per past edition (issue #16), counted from the match boxes of the
+// pinned Wikipedia revisions and reconciled with each page's group tables. Later PRs add
+// their years here. Only the listed years are counted, so 2027 rows can't affect it.
+const QUALIFIER_MATCHES: Record<number, number> = {
+  2009: 16, // oldid 1333507834: groups A (10) and B (6)
+  2011: 23, // oldid 1314721749: round 1 groups A (10) and B (3), round 2 single group (10)
+  2013: 18, // oldid 1371433914: groups A (3), B (6), C (6) and D (3)
+};
+
+describe("qualifiers, past editions", () => {
+  const q = loadDataset("data").matches.filter((m) => m.phase === "qualifying");
+  for (const [year, n] of Object.entries(QUALIFIER_MATCHES)) {
+    it(`has all ${n} qualifier matches for ${year}`, () => {
+      expect(q.filter((m) => m.year === Number(year)), `${year} qualifier matches`).toHaveLength(n);
+    });
+  }
+});
