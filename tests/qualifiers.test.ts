@@ -60,6 +60,23 @@ for (const dir of ["data", "tests/fixtures"]) {
   });
 }
 
+// All qualifier matches for 2015 and 2017 (issue #16, PR B2), counted from the match boxes
+// of the pinned Wikipedia revisions and reconciled with each page's group tables. Teams that
+// withdrew (zero rows on the page) have no matches. Only these years are counted.
+const QUALIFIER_MATCHES_B2: Record<number, number> = {
+  2015: 24, // oldid 1332487635: groups A (2), B (10), C (6), D (6); infobox 24 matches, 154 goals
+  2017: 50, // oldid 1373231566: groups A (10), B (10), C (15), D (15); infobox 50 matches, 332 goals
+};
+
+describe("qualifiers, 2015 and 2017", () => {
+  const q = loadDataset("data").matches.filter((m) => m.phase === "qualifying");
+  for (const [year, n] of Object.entries(QUALIFIER_MATCHES_B2)) {
+    it(`has all ${n} qualifier matches for ${year}`, () => {
+      expect(q.filter((m) => m.year === Number(year)), `${year} qualifier matches`).toHaveLength(n);
+    });
+  }
+});
+
 // Hong Kong's qualifier matches for past editions (issue #16), from the pinned Wikipedia
 // revisions of each "<edition> AFC U-16 Women's Championship qualification" /
 // "AFC U-17 Women's Asian Cup qualification" page. Ids are <year>-Q-R<round>-<group>-<nn>,
