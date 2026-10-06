@@ -5,35 +5,39 @@ import { describe, expect, it } from "vitest";
 import { parseCsv } from "../src/csv";
 import { loadDataset } from "./load";
 
-// 2027 qualifiers draw (16 July 2026), single round-robin per group. Iran was drawn in
-// Group C but withdrew, so it has no matches. Source: Wikipedia
-// "2027 AFC U-17 Women's Asian Cup qualification", oldid 1378683887.
-const DRAW_2027: Record<string, string[]> = {
-  A: ["KOR", "JOR", "TJK", "UAE"],
-  B: ["IDN", "SIN", "KSA", "BHR"],
-  C: ["TPE", "LAO", "CAM"],
-  D: ["KGZ", "VIE", "PLE", "MNP"],
-  E: ["IND", "MAS", "SYR", "IRQ"],
-  F: ["LBN", "THA", "BHU", "MAC"],
-  G: ["MYA", "HKG", "GUM"],
-  H: ["PHI", "BAN", "UZB"],
-};
+// 2027 qualifiers draw (16 July 2026), single round-robin per group. The draw itself is
+// data (data/draws.csv); this is an independent check of its shape against the source,
+// Wikipedia "2027 AFC U-17 Women's Asian Cup qualification", oldid 1378683887: 8 groups,
+// 29 teams. Iran was drawn in Group C but withdrew, so it is not in the draw file.
+const DRAW_2027_SIZES: Record<string, number> = { A: 4, B: 4, C: 3, D: 4, E: 4, F: 4, G: 3, H: 3 };
 
 describe("2027 qualifiers", () => {
-  const q = loadDataset("data").matches.filter((m) => m.year === 2027 && m.phase === "qualifying");
+  const ds = loadDataset("data");
+  const q = ds.matches.filter((m) => m.year === 2027 && m.phase === "qualifying");
+  const draw = (ds.draws ?? []).filter((d) => d.year === 2027 && d.phase === "qualifying" && d.round === "Round 1");
+  const inGroup = (g: string) => draw.filter((d) => d.group === g).map((d) => d.team);
+
+  it("has a draw of 8 groups and 29 teams, without Iran", () => {
+    const sizes = Object.fromEntries(Object.keys(DRAW_2027_SIZES).map((g) => [g, inGroup(g).length]));
+    expect(sizes).toEqual(DRAW_2027_SIZES);
+    expect(draw).toHaveLength(29);
+    expect(new Set(draw.map((d) => d.team)).size, "a team drawn twice").toBe(29);
+    expect(draw.map((d) => d.team)).not.toContain("IRN");
+    for (const d of draw) expect(ds.teams.has(d.team), `unknown team ${d.team}`).toBe(true);
+  });
 
   it("has every match in a drawn group, between two teams of that group", () => {
     for (const m of q) {
       const at = `match ${m.id}`;
       expect(m.round, `${at}: round`).toBe("Round 1");
-      expect(Object.keys(DRAW_2027), `${at}: group`).toContain(m.group);
-      expect(DRAW_2027[m.group], `${at}: ${m.home} not in group ${m.group}`).toContain(m.home);
-      expect(DRAW_2027[m.group], `${at}: ${m.away} not in group ${m.group}`).toContain(m.away);
+      expect(Object.keys(DRAW_2027_SIZES), `${at}: group`).toContain(m.group);
+      expect(inGroup(m.group), `${at}: ${m.home} not in group ${m.group}`).toContain(m.home);
+      expect(inGroup(m.group), `${at}: ${m.away} not in group ${m.group}`).toContain(m.away);
     }
   });
 
   it("has at least one match in every group", () => {
-    for (const g of Object.keys(DRAW_2027)) {
+    for (const g of Object.keys(DRAW_2027_SIZES)) {
       expect(q.some((m) => m.group === g), `group ${g} has no matches`).toBe(true);
     }
   });

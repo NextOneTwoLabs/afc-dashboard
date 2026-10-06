@@ -15,6 +15,16 @@ describe("stats on the demo fixture", () => {
     expect(t[2]).toMatchObject({ team: "KOR", pts: 4, gd: 1 });
   });
 
+  it("adds a zero row for a drawn team with no match, without counting played teams twice", () => {
+    const g = groups(ds.matches, 2099, "final").get("Group stage · Group A")!;
+    // MAC has no match in this group; HKG and JPN have played and are listed again on purpose.
+    const t = standings(g, ["MAC", "HKG", "JPN"]);
+    expect(t.map((r) => r.team)).toEqual(["JPN", "HKG", "KOR", "THA", "MAC"]);
+    expect(t.find((r) => r.team === "MAC")).toMatchObject({ p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0 });
+    expect(t.filter((r) => r.team === "HKG")).toHaveLength(1);
+    expect(t.find((r) => r.team === "HKG")).toEqual(standings(g).find((r) => r.team === "HKG"));
+  });
+
   it("breaks ties on head-to-head before overall goal difference", () => {
     // KOR and HKG both have 4 pts; KOR has the better GD but lost to HKG.
     const rows = standings(groups(ds.matches, 2099, "final").get("Group stage · Group A")!);
