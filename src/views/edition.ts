@@ -14,7 +14,9 @@ function phaseSection(ds: Dataset, year: number, phase: Phase): string {
   const tables = [...gs.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([name, ms]) => {
-      const rows = standings(ms)
+      const { round, group } = ms[0];
+      const drawn = ds.draws.filter((d) => d.year === year && d.phase === phase && d.round === round && d.group === group).map((d) => d.team);
+      const rows = standings(ms, drawn)
         .map(
           (r, i) => `<tr class="${r.team === FOCUS ? "hk" : ""}"><td class="num muted">${i + 1}</td><td>${teamLink(ds, r.team)}</td>
             <td class="num">${r.p}</td><td class="num">${r.w}</td><td class="num">${r.d}</td><td class="num">${r.l}</td>
@@ -47,7 +49,11 @@ export function edition(ds: Dataset, yearParam?: string): string {
           <div><div class="k">🥈 Runner-up</div>${teamLink(ds, ed.runnerUp)}</div>
           <div><div class="k">🥉 Third</div>${teamLink(ds, ed.third)}</div>
           <div><div class="k">Fourth</div>${teamLink(ds, ed.fourth)}</div></div>`
-      : `<div class="empty">${ed.status === "cancelled" ? "This edition was cancelled." : "This edition hasn't been played yet."}</div>`;
+      : ed.status === "cancelled"
+        ? `<div class="empty">This edition was cancelled.</div>`
+        : ds.matches.some((m) => m.year === ed.year)
+          ? `<p class="muted" style="margin:0">Final tournament not yet held. Qualifying results are below.</p>`
+          : `<div class="empty">This edition hasn't been played yet.</div>`;
 
   const body = phaseSection(ds, ed.year, "final") + phaseSection(ds, ed.year, "qualifying");
 

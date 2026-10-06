@@ -45,10 +45,20 @@ export interface Match {
   source: string;
 }
 
+/** One team drawn into a group (data/draws.csv). Lets a group table list teams that haven't played yet. */
+export interface Draw {
+  year: number;
+  phase: Phase;
+  round: string;
+  group: string;
+  team: string;
+}
+
 export interface Dataset {
   teams: Map<string, Team>;
   editions: Edition[];
   matches: Match[];
+  draws: Draw[];
 }
 
 const int = (s: string) => (s === "" ? undefined : Number.parseInt(s, 10));
@@ -107,10 +117,22 @@ export function parseMatches(csv: string): Match[] {
     .sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
 }
 
-export function buildDataset(teamsCsv: string, editionsCsv: string, matchesCsv: string): Dataset {
+export function parseDraws(csv: string): Draw[] {
+  return parseCsv(csv).map((r) => ({
+    year: Number(r.year),
+    phase: r.phase as Phase,
+    round: r.round,
+    group: r.group,
+    team: r.team,
+  }));
+}
+
+/** `drawsCsv` is optional: without it, group tables list only teams that have a match. */
+export function buildDataset(teamsCsv: string, editionsCsv: string, matchesCsv: string, drawsCsv = ""): Dataset {
   return {
     teams: new Map(parseTeams(teamsCsv).map((t) => [t.code, t])),
     editions: parseEditions(editionsCsv),
     matches: parseMatches(matchesCsv),
+    draws: parseDraws(drawsCsv),
   };
 }

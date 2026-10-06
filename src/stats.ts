@@ -70,9 +70,12 @@ function rows(matches: Match[], teams: string[]): StandingRow[] {
  * difference and goals among the tied teams, then overall goal difference and
  * goals scored. (Fair-play and drawing of lots can't be derived from scores;
  * those rare cases are fixed by match order in the data notes.)
+ *
+ * `drawn` lists the teams drawn into the group: any without a match yet get a
+ * row of zeros. Teams that have played are not counted twice.
  */
-export function standings(matches: Match[]): StandingRow[] {
-  const teams = [...new Set(matches.flatMap((m) => [m.home, m.away]))];
+export function standings(matches: Match[], drawn: string[] = []): StandingRow[] {
+  const teams = [...new Set([...matches.flatMap((m) => [m.home, m.away]), ...drawn])];
   const table = rows(matches, teams);
 
   const byPts = new Map<number, StandingRow[]>();
