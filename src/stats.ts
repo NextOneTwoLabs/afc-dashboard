@@ -113,7 +113,17 @@ export function groups(matches: Match[], year: number, phase: Phase): Map<string
   return out;
 }
 
-export const FINISHES = ["Champion", "Runner-up", "Third", "Fourth", "Group stage", "Qualifying", "Did not enter"] as const;
+export const FINISHES = [
+  "Champion",
+  "Runner-up",
+  "Third",
+  "Fourth",
+  "Semi-finals",
+  "Quarter-finals",
+  "Group stage",
+  "Qualifying",
+  "Did not enter",
+] as const;
 export type Finish = (typeof FINISHES)[number];
 
 export function finish(ds: Dataset, ed: Edition, team: string): Finish | undefined {
@@ -123,7 +133,11 @@ export function finish(ds: Dataset, ed: Edition, team: string): Finish | undefin
   if (ed.third === team) return "Third";
   if (ed.fourth === team) return "Fourth";
   const ms = ds.matches.filter((m) => m.year === ed.year && involves(m, team));
-  if (ms.some((m) => m.phase === "final")) return "Group stage";
+  const finals = ms.filter((m) => m.phase === "final");
+  // Without a podium place, the furthest knockout round reached (README round names).
+  if (finals.some((m) => m.round === "Semi-final")) return "Semi-finals";
+  if (finals.some((m) => m.round === "Quarter-final")) return "Quarter-finals";
+  if (finals.length) return "Group stage";
   if (ms.some((m) => m.phase === "qualifying")) return "Qualifying";
   return "Did not enter";
 }
