@@ -107,7 +107,7 @@ describe("qualifiers, 2019", () => {
 
 // The model reads scores with Number(), and Number("") is 0, so a blank score would
 // silently become a 0–0 draw. Check the raw CSV fields instead.
-for (const dir of ["data", "tests/fixtures", "tests/fixtures-u20"]) {
+for (const dir of ["data", "data/u20", "tests/fixtures", "tests/fixtures-u20"]) {
   it(`${dir}/matches.csv has a numeric score on every row`, () => {
     const rows = parseCsv(readFileSync(resolve(__dirname, "..", dir, "matches.csv"), "utf8"));
     for (const r of rows) {

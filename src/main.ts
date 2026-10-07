@@ -4,6 +4,9 @@ import drawsCsv from "../data/draws.csv?raw";
 import editionsCsv from "../data/editions.csv?raw";
 import matchesCsv from "../data/matches.csv?raw";
 import teamsCsv from "../data/teams.csv?raw";
+import u20DrawsCsv from "../data/u20/draws.csv?raw";
+import u20EditionsCsv from "../data/u20/editions.csv?raw";
+import u20MatchesCsv from "../data/u20/matches.csv?raw";
 import demoEditions from "../tests/fixtures/editions.csv?raw";
 import demoMatches from "../tests/fixtures/matches.csv?raw";
 import { TABS, latestEventYear, resolve } from "./routes";
@@ -14,13 +17,16 @@ import { FOCUS } from "./ui";
 
 // ?demo loads the fictional fixture (years 2099/2101) for UI development.
 const demo = new URLSearchParams(location.search).has("demo");
-const ds: Dataset = demo ? buildDataset(teamsCsv, demoEditions, demoMatches) : buildDataset(teamsCsv, editionsCsv, matchesCsv, drawsCsv);
+const ds: Dataset = demo
+  ? buildDataset(teamsCsv, demoEditions, demoMatches)
+  : buildDataset(teamsCsv, editionsCsv, matchesCsv, drawsCsv, { editions: u20EditionsCsv, matches: u20MatchesCsv, draws: u20DrawsCsv });
 
 const app = document.getElementById("app")!;
 const nav = document.getElementById("tabs")!;
 
 const ctx = {
-  years: ds.editions.map((e) => e.year),
+  // The routes and views show U-17 only until phase 1b of #30 adds the competition to them.
+  years: ds.editions.filter((e) => e.competition === "U17").map((e) => e.year),
   hasTeam: (c: string) => ds.teams.has(c),
   focus: FOCUS,
   latest: latestEventYear(ds.editions, ds.matches),
