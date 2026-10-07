@@ -9,7 +9,8 @@ import u20EditionsCsv from "../data/u20/editions.csv?raw";
 import u20MatchesCsv from "../data/u20/matches.csv?raw";
 import demoEditions from "../tests/fixtures/editions.csv?raw";
 import demoMatches from "../tests/fixtures/matches.csv?raw";
-import { TABS, latestEventYear, resolve } from "./routes";
+import { COMP, fromSlug } from "./competitions";
+import { TABS, latestEvent, resolve } from "./routes";
 import { edition } from "./views/edition";
 import { events } from "./views/events";
 import { team } from "./views/team";
@@ -25,11 +26,14 @@ const app = document.getElementById("app")!;
 const nav = document.getElementById("tabs")!;
 
 const ctx = {
-  // The routes and views show U-17 only until phase 1b of #30 adds the competition to them.
-  years: ds.editions.filter((e) => e.competition === "U17").map((e) => e.year),
+  years: {
+    U17: ds.editions.filter((e) => e.competition === "U17").map((e) => e.year),
+    U20: ds.editions.filter((e) => e.competition === "U20").map((e) => e.year),
+  },
   hasTeam: (c: string) => ds.teams.has(c),
   focus: FOCUS,
-  latest: latestEventYear(ds.editions, ds.matches),
+  // The site opens on the most recent tournament of either competition (owner's decision, #30).
+  latest: latestEvent(ds.editions, ds.matches),
 };
 
 function route() {
@@ -38,8 +42,9 @@ function route() {
     history.replaceState(null, "", r.redirect);
     return route();
   }
-  const { view, args } = r.route;
-  const html = view === "team" ? team(ds, args[0], args[2]) : args.length ? edition(ds, args[0]) : events(ds);
+  const { view, args, filter } = r.route;
+  const c = view === "events" ? fromSlug(args[0]) ?? "U17" : undefined;
+  const html = view === "team" ? team(ds, args[0], args[2], filter ?? "both") : args.length > 1 ? edition(ds, args[1], c) : events(ds, c);
 
   const banner = demo
     ? `<div class="banner"><strong>Demo data.</strong> Fictional results (years 2099 and 2101) for previewing the layout. <a href="./">Show real data</a></div>`
@@ -49,20 +54,26 @@ function route() {
 
   app.innerHTML = banner + html;
   nav.innerHTML = TABS.map(([k, label]) => `<a href="#/${k}" ${k === view ? 'aria-current="page"' : ""}>${label}</a>`).join("");
-  const page = view === "team" ? (ds.teams.get(args[0])?.name ?? "Teams") : args.length ? `${args[0]} · Events` : "All events";
-  document.title = `${page} · Women's U-17 Asian Cup history`;
-  bind(view === "team" ? args[0] : undefined, args[2]);
+  const page =
+    view === "team"
+      ? (ds.teams.get(args[0])?.name ?? "Teams")
+      : args.length > 1
+        ? `${args[1]} ${COMP[c!].label} · Events`
+        : `All events · ${COMP[c!].label}`;
+  document.title = `${page} · AFC Women's Youth Asian Cups`;
+  bind(view === "team" ? args[0] : undefined, args[2], filter ? `?c=${COMP[filter].slug}` : "");
 }
 
-function bind(code?: string, opp?: string) {
+/** The team pickers keep the opponent and the competition filter where they still apply. */
+function bind(code?: string, opp?: string, query = "") {
   const go = (h: string) => (location.hash = h);
   document.getElementById("team-pick")?.addEventListener("change", (e) => {
     const t = (e.target as HTMLSelectElement).value;
-    go(opp && opp !== t ? `#/team/${t}/vs/${opp}` : `#/team/${t}`);
+    go(`${opp && opp !== t ? `#/team/${t}/vs/${opp}` : `#/team/${t}`}${query}`);
   });
   document.getElementById("compare-pick")?.addEventListener("change", (e) => {
     const o = (e.target as HTMLSelectElement).value;
-    go(o ? `#/team/${code}/vs/${o}` : `#/team/${code}`);
+    go(`${o ? `#/team/${code}/vs/${o}` : `#/team/${code}`}${query}`);
   });
 }
 

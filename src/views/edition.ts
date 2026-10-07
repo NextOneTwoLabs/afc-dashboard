@@ -1,6 +1,21 @@
 import { forCompetition, sameEdition, type Competition, type Dataset, type Edition, type Phase } from "../model";
 import { groups, isKnockout, standings, winner } from "../stats";
+import { COMP, eventHref } from "../competitions";
+import { latestEvent } from "../routes";
 import { FOCUS, emptyData, esc, fmtDate, matchTable, teamLink } from "../ui";
+import { competitionNav } from "./events";
+
+/**
+ * Where the U-17 / U-20 switch goes from an edition: the other competition's edition of the
+ * same year if there is one, else its most recent tournament (owner-approved mockup, #30).
+ */
+function switchTarget(all: Dataset, from: Edition, to: Competition): string {
+  if (to === from.competition) return eventHref(to, from.year);
+  const other = forCompetition(all, to);
+  if (other.editions.some((e) => e.year === from.year)) return eventHref(to, from.year);
+  const latest = latestEvent(other.editions, other.matches) ?? (other.editions.length ? { year: other.editions.at(-1)!.year } : undefined);
+  return eventHref(to, latest?.year);
+}
 
 const KO_ORDER = ["Play-off", "Quarter-final", "Semi-final", "Third place", "Final"];
 
@@ -60,7 +75,8 @@ export function edition(all: Dataset, yearParam?: string, competition: Competiti
   const ed = eds.find((e) => String(e.year) === yearParam) ?? [...eds].reverse().find((e) => e.status === "completed") ?? eds[0];
   if (!ed) return emptyData();
 
-  const chips = `<div class="chips">${eds.map((e) => `<a class="chip" href="#/events/${e.year}" ${e === ed ? 'aria-current="page"' : ""}>${e.year}</a>`).join("")}</div>`;
+  const chips = `<div class="chips">${eds.map((e) => `<a class="chip" href="${eventHref(e.competition, e.year)}" ${e === ed ? 'aria-current="page"' : ""}>${e.year}</a>`).join("")}</div>`;
+  const nav = competitionNav(competition, (o) => switchTarget(all, ed, o), chips);
   const dates = ed.start ? `${fmtDate(ed.start)} – ${fmtDate(ed.end)}` : "Dates to be added";
   const joint = jointSemiFinalists(ds, ed);
   const podium =
@@ -82,7 +98,7 @@ export function edition(all: Dataset, yearParam?: string, competition: Competiti
 
   const body = phaseSection(ds, ed, "final") + phaseSection(ds, ed, "qualifying");
 
-  return `<p class="small" style="margin:0 0 8px"><a href="#/events">← All events</a></p>${chips}<h1>${ed.year} ${esc(ed.name)}</h1>
+  return `<p class="small" style="margin:0 0 8px"><a href="${eventHref(competition)}">← All ${COMP[competition].label} events</a></p>${nav}<h1>${ed.year} ${esc(ed.name)}</h1>
     <p class="lede">U-${ed.ageLimit} · Hosted by ${esc(ed.host)} · ${esc(dates)}
       ${ed.verified ? "" : ` <span class="badge warn" title="Not yet checked against sources">unverified</span>`}
       ${ed.source ? ` · <a href="${esc(ed.source)}" target="_blank" rel="noopener">Source ↗</a>` : ""}</p>
