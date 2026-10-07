@@ -1,4 +1,4 @@
-import type { Dataset, Edition, Phase } from "../model";
+import type { Competition, Dataset, Edition, Phase } from "../model";
 import { groups, isKnockout, standings, winner } from "../stats";
 import { FOCUS, emptyData, esc, fmtDate, matchTable, teamLink } from "../ui";
 
@@ -53,7 +53,7 @@ function jointSemiFinalists(ds: Dataset, ed: Edition): string[] | undefined {
   return losers.length === 2 && losers.every(Boolean) && losers[0] !== losers[1] ? (losers as string[]) : undefined;
 }
 
-export function edition(ds: Dataset, yearParam?: string): string {
+export function edition(ds: Dataset, yearParam?: string, _competition: Competition = "U17"): string {
   const eds = ds.editions;
   const ed = eds.find((e) => String(e.year) === yearParam) ?? [...eds].reverse().find((e) => e.status === "completed") ?? eds[0];
   if (!ed) return emptyData();

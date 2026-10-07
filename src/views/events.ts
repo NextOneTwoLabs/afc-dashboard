@@ -1,5 +1,5 @@
 import { barChart } from "../charts";
-import type { Dataset, Match } from "../model";
+import type { Competition, Dataset, Match } from "../model";
 import { activeTeams, biggestWins, highestScoring, medalTable, unbeatenRuns } from "../stats";
 import { FOCUS, emptyData, esc, fmtDate, matchTable, teamLink, teamName } from "../ui";
 
@@ -24,7 +24,7 @@ function records(ds: Dataset): string {
 }
 
 /** The Events overview (#/events): every edition, medals, goals and all-time records. */
-export function events(ds: Dataset): string {
+export function events(ds: Dataset, _competition: Competition = "U17"): string {
   const held = ds.editions.filter((e) => e.status === "completed");
   const goals = ds.matches.reduce((n, m) => n + m.hs + m.as, 0);
   const finals = ds.matches.filter((m) => m.phase === "final");

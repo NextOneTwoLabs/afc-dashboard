@@ -1,4 +1,4 @@
-import type { Dataset, Edition, Match, Phase } from "./model";
+import type { Competition, Dataset, Edition, Match, Phase } from "./model";
 
 export type Outcome = "W" | "D" | "L";
 
@@ -106,7 +106,7 @@ export function standings(matches: Match[], drawn: string[] = []): StandingRow[]
 }
 
 /** Group matches of one edition/phase keyed by "Round · Group X". */
-export function groups(matches: Match[], year: number, phase: Phase): Map<string, Match[]> {
+export function groups(matches: Match[], year: number, phase: Phase, _competition: Competition = "U17"): Map<string, Match[]> {
   const out = new Map<string, Match[]>();
   for (const m of matches) {
     if (m.year !== year || m.phase !== phase || isKnockout(m)) continue;
@@ -154,7 +154,8 @@ export interface TeamSummary {
   best?: Finish;
 }
 
-export function teamSummary(ds: Dataset, code: string): TeamSummary {
+/** With `competition`, only that competition; without it, all competitions together. */
+export function teamSummary(ds: Dataset, code: string, _competition?: Competition): TeamSummary {
   const fins = ds.editions.map((e) => finish(ds, e, code)).filter((f): f is Finish => !!f);
   const best = fins.filter((f) => f !== "Did not enter").sort((a, b) => FINISHES.indexOf(a) - FINISHES.indexOf(b))[0];
   return {

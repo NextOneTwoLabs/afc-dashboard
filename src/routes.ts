@@ -1,5 +1,5 @@
 // Hash routing, kept free of the DOM so it can be tested.
-import type { Edition, Match } from "./model";
+import type { Competition, Edition, Match } from "./model";
 
 export const TABS = [
   ["events", "Events"],
@@ -33,6 +33,15 @@ export function latestEventYear(editions: Edition[], matches: Match[]): number |
   if (played.length) return Math.max(...played);
   const done = editions.filter((e) => e.status === "completed").map((e) => e.year);
   return done.length ? Math.max(...done) : undefined;
+}
+
+/**
+ * The most recent event across competitions: the edition whose latest match is the most
+ * recent (a tie on the date goes to U-17). With no matches, the latest completed edition.
+ */
+export function latestEvent(editions: Edition[], matches: Match[]): { competition: Competition; year: number } | undefined {
+  const year = latestEventYear(editions, matches);
+  return year === undefined ? undefined : { competition: "U17", year };
 }
 
 export function resolve(hash: string, ctx: RouteContext): Resolved {

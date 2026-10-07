@@ -1,5 +1,5 @@
 import { ordinalChart } from "../charts";
-import type { Dataset } from "../model";
+import type { Competition, Dataset } from "../model";
 import { FINISHES, activeTeams, biggestWins, finish, involves, outcome, record, teamSummary, unbeatenRuns } from "../stats";
 import { FOCUS, esc, fmtDate, matchTable, teamLink, teamName } from "../ui";
 
@@ -29,7 +29,7 @@ function comparison(ds: Dataset, a: string, b: string): string {
     ${bar}${ms.length ? `<h3 style="margin-top:14px">Meetings</h3>${matchTable(ds, [...ms].reverse(), { perspective: a })}` : ""}</div>`;
 }
 
-export function team(ds: Dataset, codeParam?: string, oppParam?: string): string {
+export function team(ds: Dataset, codeParam?: string, oppParam?: string, _competition: Competition = "U17"): string {
   const code = codeParam && ds.teams.has(codeParam) ? codeParam : FOCUS;
   const opp = oppParam && ds.teams.has(oppParam) && oppParam !== code ? oppParam : undefined;
   const t = ds.teams.get(code)!;
