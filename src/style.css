@@ -183,6 +183,7 @@ footer { border-top: 1px solid var(--border); color: var(--text-muted); font-siz
   .chart text.thin { display: none; }
   .hide-sm { display: none; }
   .hide-lg { display: revert; }
+  .brand small { white-space: normal; } /* the U-17 and U-20 subtitle can wrap rather than widen the page (#30) */
   td .team { white-space: normal; } /* long names wrap instead of pushing columns out */
   th, td { padding: 6px 4px; }
 }
