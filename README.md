@@ -27,7 +27,7 @@ Everything lives in plain CSV under [`data/`](data/), so results can be fixed wi
 
 | column | meaning |
 |---|---|
-| `id` | unique, e.g. `2024-F-01`, `2024-Q-R1-A-01`; U-20 ids start with `U20-`, e.g. `U20-2024-F-01`, `U20-2024-Q-R1-A-01` |
+| `id` | unique, e.g. `2024-F-01`, `2024-Q-R1-A-01`; U-20 ids start with `U20-`, e.g. `U20-2024-F-01`, `U20-2024-Q-R1-A-01`; a qualifying play-off with no group uses `PO` in the group slot, e.g. `U20-2013-Q-R2-PO-01` |
 | `year` | edition year (the tournament year, even for qualifiers played the year before) |
 | `phase` | `qualifying` or `final` |
 | `round` | `Round 1`, `Round 2`, `Group stage`, `Play-off`, `Quarter-final`, `Semi-final`, `Third place`, `Final` |
