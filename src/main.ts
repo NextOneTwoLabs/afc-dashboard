@@ -111,7 +111,11 @@ try {
 const applyTheme = () => {
   if (theme === "auto") document.documentElement.removeAttribute("data-theme");
   else document.documentElement.setAttribute("data-theme", theme);
-  themeBtn.textContent = { auto: "◐ Auto", light: "☀ Light", dark: "☾ Dark" }[theme];
+  // The family's 36px icon toggle; the three states stay (Auto follows the system setting).
+  const label = { auto: "Auto", light: "Light", dark: "Dark" }[theme];
+  themeBtn.textContent = { auto: "◐", light: "☀", dark: "🌙" }[theme];
+  themeBtn.setAttribute("aria-label", `Colour theme: ${label}`);
+  themeBtn.title = `Colour theme: ${label} (click to change)`;
 };
 themeBtn.addEventListener("click", () => {
   theme = themes[(themes.indexOf(theme) + 1) % themes.length];

@@ -2,7 +2,7 @@ import { forCompetition, sameEdition, type Competition, type Dataset, type Editi
 import { groups, isKnockout, standings, winner } from "../stats";
 import { COMP, eventHref } from "../competitions";
 import { latestEvent } from "../routes";
-import { FOCUS, emptyData, esc, fmtDate, matchTable, teamLink } from "../ui";
+import { FOCUS, emptyData, esc, fmtDate, matchTable, pageHead, teamLink } from "../ui";
 import { competitionNav } from "./events";
 
 /**
@@ -98,10 +98,11 @@ export function edition(all: Dataset, yearParam?: string, competition: Competiti
 
   const body = phaseSection(ds, ed, "final") + phaseSection(ds, ed, "qualifying");
 
-  return `<p class="small" style="margin:0 0 8px"><a href="${eventHref(competition)}">← All ${COMP[competition].label} events</a></p>${nav}<h1>${ed.year} ${esc(ed.name)}</h1>
-    <p class="lede">U-${ed.ageLimit} · Hosted by ${esc(ed.host)} · ${esc(dates)}
+  const sub = `U-${ed.ageLimit} · Hosted by ${esc(ed.host)} · ${esc(dates)}
       ${ed.verified ? "" : ` <span class="badge warn" title="Not yet checked against sources">unverified</span>`}
-      ${ed.source ? ` · <a href="${esc(ed.source)}" target="_blank" rel="noopener">Source ↗</a>` : ""}</p>
+      ${ed.source ? ` · <a href="${esc(ed.source)}" target="_blank" rel="noopener">Source ↗</a>` : ""}`;
+  return `${pageHead([[`All ${COMP[competition].label} events`, eventHref(competition)], [String(ed.year)]], `${ed.year} ${esc(ed.name)}`, sub)}
+    <div class="controls">${nav}</div>
     ${ed.notes ? `<div class="banner">${esc(ed.notes)}</div>` : ""}
     <div class="card">${podium}</div>
     ${body || (ed.status === "completed" ? `<div style="margin-top:16px">${emptyData()}</div>` : "")}`;
