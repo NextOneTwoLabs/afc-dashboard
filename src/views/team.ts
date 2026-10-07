@@ -1,5 +1,5 @@
 import { ordinalChart } from "../charts";
-import type { Dataset } from "../model";
+import { forCompetition, sameEdition, type Competition, type Dataset } from "../model";
 import { FINISHES, activeTeams, biggestWins, finish, involves, outcome, record, teamSummary, unbeatenRuns } from "../stats";
 import { FOCUS, esc, fmtDate, matchTable, teamLink, teamName } from "../ui";
 
@@ -29,7 +29,9 @@ function comparison(ds: Dataset, a: string, b: string): string {
     ${bar}${ms.length ? `<h3 style="margin-top:14px">Meetings</h3>${matchTable(ds, [...ms].reverse(), { perspective: a })}` : ""}</div>`;
 }
 
-export function team(ds: Dataset, codeParam?: string, oppParam?: string): string {
+/** A team's page for one competition (U-17 by default, as on the site today). */
+export function team(all: Dataset, codeParam?: string, oppParam?: string, competition: Competition = "U17"): string {
+  const ds = forCompetition(all, competition);
   const code = codeParam && ds.teams.has(codeParam) ? codeParam : FOCUS;
   const opp = oppParam && ds.teams.has(oppParam) && oppParam !== code ? oppParam : undefined;
   const t = ds.teams.get(code)!;
@@ -61,9 +63,9 @@ export function team(ds: Dataset, codeParam?: string, oppParam?: string): string
   // Completed editions, plus any other edition the team has played in (e.g. qualifiers under way),
   // so every match counted in the tiles has a row here.
   const byYear = ds.editions
-    .filter((e) => e.status === "completed" || ms.some((m) => m.year === e.year))
+    .filter((e) => e.status === "completed" || ms.some((m) => sameEdition(m, e)))
     .map((e) => {
-      const ym = ms.filter((m) => m.year === e.year);
+      const ym = ms.filter((m) => sameEdition(m, e));
       const q = record(ym.filter((m) => m.phase === "qualifying"), code);
       const f = record(ym.filter((m) => m.phase === "final"), code);
       const fin = e.status === "scheduled" ? "In progress" : e.status === "cancelled" ? "Cancelled" : finish(ds, e, code);

@@ -1,5 +1,5 @@
 import { barChart } from "../charts";
-import type { Dataset, Match } from "../model";
+import { forCompetition, sameEdition, type Competition, type Dataset, type Match } from "../model";
 import { activeTeams, biggestWins, highestScoring, medalTable, unbeatenRuns } from "../stats";
 import { FOCUS, emptyData, esc, fmtDate, matchTable, teamLink, teamName } from "../ui";
 
@@ -24,7 +24,8 @@ function records(ds: Dataset): string {
 }
 
 /** The Events overview (#/events): every edition, medals, goals and all-time records. */
-export function events(ds: Dataset): string {
+export function events(all: Dataset, competition: Competition = "U17"): string {
+  const ds = forCompetition(all, competition);
   const held = ds.editions.filter((e) => e.status === "completed");
   const goals = ds.matches.reduce((n, m) => n + m.hs + m.as, 0);
   const finals = ds.matches.filter((m) => m.phase === "final");
@@ -54,7 +55,7 @@ export function events(ds: Dataset): string {
 
   const perEdition = held
     .map((e) => {
-      const ms = finals.filter((m) => m.year === e.year);
+      const ms = finals.filter((m) => sameEdition(m, e));
       return { e, n: ms.length, g: ms.reduce((n, m) => n + m.hs + m.as, 0) };
     })
     .filter((x) => x.n > 0);

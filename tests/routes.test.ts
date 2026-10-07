@@ -68,7 +68,7 @@ describe("latestEventYear (the default page)", () => {
   const base = loadDataset("data");
   // Built from the real editions so the test doesn't depend on which results have been entered.
   const m = (year: number, phase: "final" | "qualifying"): Match => ({
-    id: `${year}-x`, year, phase, round: "Round 1", group: "A", date: `${year - 1}-10-01`, venue: "", home: "HKG", away: "JPN", hs: 0, as: 1, aet: false, notes: "", source: "",
+    competition: "U17", id: `${year}-x`, year, phase, round: "Round 1", group: "A", date: `${year - 1}-10-01`, venue: "", home: "HKG", away: "JPN", hs: 0, as: 1, aet: false, notes: "", source: "",
   });
 
   it("is the latest edition with matches: 2026 without any 2027 rows", () => {

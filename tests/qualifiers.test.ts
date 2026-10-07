@@ -3,7 +3,10 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseCsv } from "../src/csv";
-import { loadDataset } from "./load";
+import { loadU17 } from "./load";
+
+// These counts come from the U-17 qualification pages, so they read U-17 rows only (#30):
+// U-20 editions share the same years.
 
 // All qualifier matches and goals for 2024 and 2026 (issue #16, PR B4), from the pinned
 // Wikipedia revisions (2024: oldid 1343613819, 2026: oldid 1364402581), checked against the
@@ -17,7 +20,7 @@ const QUALIFIERS_B4: Record<number, { rounds: Record<string, number>; goals: num
 };
 
 describe("qualifiers, 2024 and 2026", () => {
-  const q = loadDataset("data").matches.filter((m) => m.phase === "qualifying");
+  const q = loadU17("data").matches.filter((m) => m.phase === "qualifying");
   for (const [year, { rounds, goals }] of Object.entries(QUALIFIERS_B4)) {
     const ms = q.filter((m) => m.year === Number(year));
     for (const [round, n] of Object.entries(rounds)) {
@@ -44,7 +47,7 @@ describe("qualifiers, 2024 and 2026", () => {
 const DRAW_2027_SIZES: Record<string, number> = { A: 4, B: 4, C: 3, D: 4, E: 4, F: 4, G: 3, H: 3 };
 
 describe("2027 qualifiers", () => {
-  const ds = loadDataset("data");
+  const ds = loadU17("data");
   const q = ds.matches.filter((m) => m.year === 2027 && m.phase === "qualifying");
   const draw = (ds.draws ?? []).filter((d) => d.year === 2027 && d.phase === "qualifying" && d.round === "Round 1");
   const inGroup = (g: string) => draw.filter((d) => d.group === g).map((d) => d.team);
@@ -92,7 +95,7 @@ const QUALIFIER_MATCHES_B3: Record<number, Record<string, number>> = {
 };
 
 describe("qualifiers, 2019", () => {
-  const q = loadDataset("data").matches.filter((m) => m.phase === "qualifying");
+  const q = loadU17("data").matches.filter((m) => m.phase === "qualifying");
   for (const [year, rounds] of Object.entries(QUALIFIER_MATCHES_B3)) {
     for (const [round, n] of Object.entries(rounds)) {
       it(`has all ${n} ${round} qualifier matches for ${year}`, () => {
@@ -104,7 +107,7 @@ describe("qualifiers, 2019", () => {
 
 // The model reads scores with Number(), and Number("") is 0, so a blank score would
 // silently become a 0–0 draw. Check the raw CSV fields instead.
-for (const dir of ["data", "tests/fixtures"]) {
+for (const dir of ["data", "data/u20", "tests/fixtures", "tests/fixtures-u20"]) {
   it(`${dir}/matches.csv has a numeric score on every row`, () => {
     const rows = parseCsv(readFileSync(resolve(__dirname, "..", dir, "matches.csv"), "utf8"));
     for (const r of rows) {
@@ -123,7 +126,7 @@ const QUALIFIER_MATCHES_B2: Record<number, number> = {
 };
 
 describe("qualifiers, 2015 and 2017", () => {
-  const q = loadDataset("data").matches.filter((m) => m.phase === "qualifying");
+  const q = loadU17("data").matches.filter((m) => m.phase === "qualifying");
   for (const [year, n] of Object.entries(QUALIFIER_MATCHES_B2)) {
     it(`has all ${n} qualifier matches for ${year}`, () => {
       expect(q.filter((m) => m.year === Number(year)), `${year} qualifier matches`).toHaveLength(n);
@@ -152,7 +155,7 @@ const HKG_QUALIFIERS: Record<number, string[]> = {
 };
 
 describe("Hong Kong qualifiers, past editions", () => {
-  const ms = loadDataset("data").matches.filter((m) => m.phase === "qualifying" && (m.home === "HKG" || m.away === "HKG"));
+  const ms = loadU17("data").matches.filter((m) => m.phase === "qualifying" && (m.home === "HKG" || m.away === "HKG"));
 
   for (const [year, ids] of Object.entries(HKG_QUALIFIERS)) {
     it(`has Hong Kong's ${ids.length} qualifier matches for ${year}`, () => {
@@ -172,7 +175,7 @@ const QUALIFIER_MATCHES: Record<number, number> = {
 };
 
 describe("qualifiers, past editions", () => {
-  const q = loadDataset("data").matches.filter((m) => m.phase === "qualifying");
+  const q = loadU17("data").matches.filter((m) => m.phase === "qualifying");
   for (const [year, n] of Object.entries(QUALIFIER_MATCHES)) {
     it(`has all ${n} qualifier matches for ${year}`, () => {
       expect(q.filter((m) => m.year === Number(year)), `${year} qualifier matches`).toHaveLength(n);
