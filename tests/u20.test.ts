@@ -221,3 +221,80 @@ describe("U-20 qualifiers, 2006-2013", () => {
     ]);
   });
 });
+
+// Phase 3b (issue #30): U-20 qualifiers, 2015-2019. Same method as 2006-2013 above. The pages'
+// infoboxes give 18 matches / 85 goals (2015), 18 / 93 (2017) and 49 / 300 (2019: round 1
+// 37 / 244, round 2 12 / 56), which the rows equal. Teams listed in a group table with no
+// match played have no rows: they withdrew after the draw (2017 LBN, SIN, PAK, PHI; 2019 AFG,
+// MNP, PLE), except 2019 SIN, which was moved from group B to group E in the re-draw and played
+// there. The 2019 groups as played had A 4, B 4, C 5, D 4, E 4 and F 3 teams.
+const QUALIFIERS_B: Record<number, { oldid: number; groups: Record<string, number>; goals: number; absent: Record<string, string[]> }> = {
+  2015: { oldid: 1314326577, groups: { "R1-A": 6, "R1-B": 3, "R1-C": 6, "R1-D": 3 }, goals: 85, absent: {} },
+  2017: { oldid: 1314327337, groups: { "R1-A": 3, "R1-B": 6, "R1-C": 6, "R1-D": 3 }, goals: 93, absent: { "R1-A": ["LBN", "SIN"], "R1-B": ["PAK"], "R1-D": ["PHI"] } },
+  2019: {
+    oldid: 1371137299,
+    groups: { "R1-A": 6, "R1-B": 6, "R1-C": 10, "R1-D": 6, "R1-E": 6, "R1-F": 3, "R2-A": 6, "R2-B": 6 },
+    goals: 300,
+    absent: { "R1-A": ["AFG"], "R1-B": ["SIN"], "R1-E": ["MNP"], "R1-F": ["PLE"] },
+  },
+};
+
+describe("U-20 qualifiers, 2015-2019", () => {
+  const qual = (year: number) => ds.matches.filter((m) => m.year === year && m.phase === "qualifying");
+
+  it.each(Object.entries(QUALIFIERS_B))("%s has every group's matches, numbered by group", (year, want) => {
+    const expected = Object.entries(want.groups).flatMap(([key, n]) => {
+      const [r, g] = key.split("-");
+      return Array.from({ length: n }, (_, i) => `U20-${year}-Q-${r}-${g}-${String(i + 1).padStart(2, "0")}`);
+    });
+    expect(qual(Number(year)).map((m) => m.id).sort()).toEqual(expected.sort());
+  });
+
+  it.each(Object.entries(QUALIFIERS_B))("%s qualifiers have the page's goal total and cite their pinned page", (year, want) => {
+    const ms = qual(Number(year));
+    expect(ms.length).toBeGreaterThan(0);
+    expect(ms.reduce((t, m) => t + m.hs + m.as, 0)).toBe(want.goals);
+    for (const m of ms) {
+      expect(m.source, m.id).toBe(`https://en.wikipedia.org/w/index.php?title=${year}_AFC_U-19_Women%27s_Championship_qualification&oldid=${want.oldid}`);
+    }
+  });
+
+  it("has round names and groups that match the ids", () => {
+    const ms = [2015, 2017, 2019].flatMap(qual);
+    expect(ms.length).toBeGreaterThan(0);
+    for (const m of ms) {
+      const [, , , r, g] = m.id.split("-");
+      expect(m.round, m.id).toBe(r === "R1" ? "Round 1" : "Round 2");
+      expect(m.group, m.id).toBe(g);
+    }
+  });
+
+  it("splits 2019 into 37 round-1 matches (244 goals) and 12 round-2 matches (56 goals)", () => {
+    const q = qual(2019);
+    const r = (round: string) => q.filter((m) => m.round === round);
+    expect([r("Round 1").length, r("Round 1").reduce((t, m) => t + m.hs + m.as, 0)]).toEqual([37, 244]);
+    expect([r("Round 2").length, r("Round 2").reduce((t, m) => t + m.hs + m.as, 0)]).toEqual([12, 56]);
+  });
+
+  it("gives no rows to teams that withdrew or were moved out of a group, in that group", () => {
+    for (const [year, want] of Object.entries(QUALIFIERS_B)) {
+      expect(qual(Number(year)).length, `${year} has rows`).toBeGreaterThan(0);
+      for (const [key, teams] of Object.entries(want.absent)) {
+        const [r, g] = key.split("-");
+        for (const t of teams) {
+          const ms = qual(Number(year)).filter((m) => m.id.includes(`-Q-${r}-${g}-`) && (m.home === t || m.away === t));
+          expect(ms, `${year} ${key} ${t}`).toHaveLength(0);
+        }
+      }
+    }
+  });
+
+  it("lists Hong Kong's qualifier matches", () => {
+    const got = ds.matches.filter((m) => m.phase === "qualifying" && m.year >= 2015 && m.year <= 2019 && (m.home === "HKG" || m.away === "HKG")).map((m) => m.id).sort();
+    expect(got).toEqual([
+      "U20-2015-Q-R1-C-01", "U20-2015-Q-R1-C-04", "U20-2015-Q-R1-C-05", // oldid 1314326577
+      "U20-2017-Q-R1-B-01", "U20-2017-Q-R1-B-03", "U20-2017-Q-R1-B-06", // oldid 1314327337
+      "U20-2019-Q-R1-A-02", "U20-2019-Q-R1-A-03", "U20-2019-Q-R1-A-05", // oldid 1371137299
+    ]);
+  });
+});
