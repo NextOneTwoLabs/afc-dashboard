@@ -52,6 +52,24 @@ describe("2027 qualifiers", () => {
   });
 });
 
+// All qualifier matches for 2019 (issue #16, PR B3), counted from the match boxes of the
+// pinned Wikipedia revision (oldid 1355020762) and reconciled with its group tables.
+// The infobox adds them as round 1 (56 matches, 358 goals) plus round 2 (12, 39).
+const QUALIFIER_MATCHES_B3: Record<number, Record<string, number>> = {
+  2019: { "Round 1": 56, "Round 2": 12 },
+};
+
+describe("qualifiers, 2019", () => {
+  const q = loadDataset("data").matches.filter((m) => m.phase === "qualifying");
+  for (const [year, rounds] of Object.entries(QUALIFIER_MATCHES_B3)) {
+    for (const [round, n] of Object.entries(rounds)) {
+      it(`has all ${n} ${round} qualifier matches for ${year}`, () => {
+        expect(q.filter((m) => m.year === Number(year) && m.round === round), `${year} ${round} matches`).toHaveLength(n);
+      });
+    }
+  }
+});
+
 // The model reads scores with Number(), and Number("") is 0, so a blank score would
 // silently become a 0–0 draw. Check the raw CSV fields instead.
 for (const dir of ["data", "tests/fixtures"]) {
