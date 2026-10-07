@@ -5,6 +5,38 @@ import { describe, expect, it } from "vitest";
 import { parseCsv } from "../src/csv";
 import { loadDataset } from "./load";
 
+// All qualifier matches and goals for 2024 and 2026 (issue #16, PR B4), from the pinned
+// Wikipedia revisions (2024: oldid 1343613819, 2026: oldid 1364402581), checked against the
+// AFC reports where www.the-afc.com has them and reconciled with each page's group tables.
+// 2026 NMI v AUS (group E) was awarded 3–0 to NMI by the AFC; the group tables count the
+// awarded result, so 2026 has 154 goals. The 2026 infobox's 173 counts the 0–22 played on
+// the pitch instead (154 − 3 + 22 = 173).
+const QUALIFIERS_B4: Record<number, { rounds: Record<string, number>; goals: number }> = {
+  2024: { rounds: { "Round 1": 24, "Round 2": 12 }, goals: 195 },
+  2026: { rounds: { "Round 1": 30 }, goals: 154 },
+};
+
+describe("qualifiers, 2024 and 2026", () => {
+  const q = loadDataset("data").matches.filter((m) => m.phase === "qualifying");
+  for (const [year, { rounds, goals }] of Object.entries(QUALIFIERS_B4)) {
+    const ms = q.filter((m) => m.year === Number(year));
+    for (const [round, n] of Object.entries(rounds)) {
+      it(`has all ${n} ${round} qualifier matches for ${year}`, () => {
+        expect(ms.filter((m) => m.round === round), `${year} ${round} matches`).toHaveLength(n);
+      });
+    }
+    it(`has ${goals} qualifier goals for ${year}`, () => {
+      expect(ms.reduce((t, m) => t + m.hs + m.as, 0)).toBe(goals);
+    });
+  }
+
+  it("records the awarded 2026 NMI v AUS match as 3–0", () => {
+    const m = q.find((x) => x.id === "2026-Q-R1-E-01");
+    expect(m).toMatchObject({ home: "MNP", away: "AUS", hs: 3, as: 0 });
+    expect(m?.notes).toMatch(/awarded/i);
+  });
+});
+
 // 2027 qualifiers draw (16 July 2026), single round-robin per group. The draw itself is
 // data (data/draws.csv); this is an independent check of its shape against the source,
 // Wikipedia "2027 AFC U-17 Women's Asian Cup qualification", oldid 1378683887: 8 groups,
