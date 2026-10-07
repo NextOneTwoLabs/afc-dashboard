@@ -2,7 +2,7 @@
 // be keyed by competition. Small inline datasets, independent of data/.
 import { describe, expect, it } from "vitest";
 import { buildDataset, sameEdition, type Competition } from "../src/model";
-import { latestEvent, latestEventYear } from "../src/routes";
+import { latestEvent } from "../src/routes";
 import { finish, groups, teamSummary } from "../src/stats";
 import { edition } from "../src/views/edition";
 import { events } from "../src/views/events";
@@ -121,7 +121,7 @@ describe("competitions in the model (#30, phase 1a)", () => {
 
   it("a team page and summary read one competition, or all of them", () => {
     expect(byEdition(team(ds, "HKG", undefined, "U20"))).toMatch(/2024<\/a><\/td><td>.*?<\/td><td>0-1-0/);
-    expect(team(ds, "HKG")).not.toMatch(/2024<\/a>/); // Hong Kong played no U-17 2024 match
+    expect(team(ds, "HKG", undefined, "U17")).not.toMatch(/2024<\/a>/); // Hong Kong played no U-17 2024 match
     expect(teamSummary(ds, "JPN", "U20")).toMatchObject({ appearances: 2, titles: 1 });
     expect(teamSummary(ds, "JPN", "U17")).toMatchObject({ appearances: 1, titles: 0 });
     expect(teamSummary(ds, "JPN")).toMatchObject({ appearances: 3, titles: 1 });
@@ -150,13 +150,5 @@ describe("latestEvent() (#30)", () => {
   it("falls back to the latest completed edition when there are no matches", () => {
     const none = buildDataset(TEAMS, U17_ED, M, DR, { editions: `${U20_ED}\n2026,U-20 Cup,20,Thailand,2026-04-01,2026-04-18,completed,JPN,PRK,,,0,,`, matches: M });
     expect(latestEvent(none.editions, none.matches)).toEqual({ competition: "U20", year: 2026 });
-  });
-
-  it("leaves the site's landing rule (latestEventYear) on U-17 until phase 1b (guard)", () => {
-    const later = buildDataset(TEAMS, U17_ED, U17_M, U17_DR, {
-      editions: `${U20_ED}\n2026,U-20 Cup,20,Thailand,,,scheduled,,,,,0,,`,
-      matches: `${U20_M}\nU20-2026-Q-R1-A-01,2026,qualifying,Round 1,A,2025-08-06,X,HKG,VIE,1,0,,,,,`,
-    });
-    expect(latestEventYear(later.editions, later.matches)).toBe(2024);
   });
 });
