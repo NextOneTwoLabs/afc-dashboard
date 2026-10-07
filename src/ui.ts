@@ -1,4 +1,5 @@
-import type { Dataset, Match } from "./model";
+import { COMP, eventHref } from "./competitions";
+import type { Competition, Dataset, Match } from "./model";
 import { isKnockout, outcome, scoreline, type Outcome } from "./stats";
 
 /** The team the dashboard spotlights. */
@@ -26,9 +27,9 @@ export const stage = (m: Match) => (isKnockout(m) ? m.round : `${m.round} · Grp
 export const phaseLabel = (p: Match["phase"]) => (p === "final" ? "Finals" : "Qualifiers");
 
 /** Match list; with `perspective`, adds a result column for that team. */
-export function matchTable(ds: Dataset, matches: Match[], opts: { perspective?: string; showEdition?: boolean } = {}): string {
+export function matchTable(ds: Dataset, matches: Match[], opts: { perspective?: string; showEdition?: boolean; showCompetition?: boolean } = {}): string {
   if (!matches.length) return `<div class="empty">No matches.</div>`;
-  const { perspective, showEdition = true } = opts;
+  const { perspective, showEdition = true, showCompetition = false } = opts;
   const rows = matches
     .map((m) => {
       // Highlighting every row on the focus team's own pages would say nothing.
@@ -36,7 +37,7 @@ export function matchTable(ds: Dataset, matches: Match[], opts: { perspective?: 
       const src = m.source ? ` <a href="${esc(m.source)}" target="_blank" rel="noopener" title="Source" aria-label="Source">↗</a>` : "";
       return `<tr class="${hk ? "hk" : ""}">
         <td>${esc(fmtDate(m.date))}</td>
-        ${showEdition ? `<td class="hide-sm"><a href="#/events/${m.year}">${m.year}</a> <span class="muted small">${phaseLabel(m.phase)}</span></td>` : ""}
+        ${showEdition ? `<td class="hide-sm"><a href="${eventHref(m.competition, m.year)}">${showCompetition ? `${COMP[m.competition].label} ` : ""}${m.year}</a> <span class="muted small">${phaseLabel(m.phase)}</span></td>` : ""}
         <td class="hide-sm">${esc(stage(m))}</td>
         ${perspective ? `<td>${resBadge(outcome(m, perspective))}</td>` : ""}
         <td class="home">${teamLink(ds, m.home)}</td>
@@ -50,6 +51,16 @@ export function matchTable(ds: Dataset, matches: Match[], opts: { perspective?: 
     <thead><tr><th>Date</th>${showEdition ? `<th class="hide-sm">Edition</th>` : ""}<th class="hide-sm">Stage</th>${perspective ? "<th></th>" : ""}<th class="num">Home</th><th style="text-align:center">Score</th><th>Away</th><th class="hide-sm">Venue</th></tr></thead>
     <tbody>${rows}</tbody></table></div>`;
 }
+
+/** A row of linked options with the current one marked, e.g. the U-17 / U-20 switch. */
+export function segmented(label: string, items: { label: string; href: string; current: boolean }[]): string {
+  return `<div class="seg" role="group" aria-label="${esc(label)}">${items
+    .map((i) => `<a href="${esc(i.href)}"${i.current ? ' aria-current="page"' : ""}>${esc(i.label)}</a>`)
+    .join("")}</div>`;
+}
+
+/** A small label naming a competition, e.g. in the team page's tables. */
+export const compBadge = (c: Competition) => `<span class="badge comp">${COMP[c].label}</span>`;
 
 export const emptyData = () =>
   `<div class="empty">Match data hasn't been loaded yet. Results will appear here once the dataset is filled in.</div>`;
