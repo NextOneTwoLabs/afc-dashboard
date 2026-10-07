@@ -1,0 +1,9 @@
+id,year,phase,round,group,date,venue,home,away,hs,as,aet,hp,ap,notes,source
+U20-2099-Q-R1-A-01,2099,qualifying,Round 1,A,2098-10-01,Mong Kok Stadium,HKG,MAC,2,0,,,,,
+U20-2099-F-01,2099,final,Group stage,A,2099-06-01,Tokyo,JPN,HKG,3,0,,,,,
+U20-2099-F-02,2099,final,Group stage,A,2099-06-02,Tokyo,HKG,AUS,0,2,,,,,
+U20-2099-F-03,2099,final,Group stage,A,2099-06-03,Tokyo,AUS,JPN,1,1,,,,,
+U20-2099-F-04,2099,final,Semi-final,,2099-06-06,Tokyo,JPN,AUS,2,0,,,,,
+U20-2099-F-05,2099,final,Semi-final,,2099-06-06,Tokyo,PRK,KOR,1,1,1,4,3,,
+U20-2099-F-06,2099,final,Third place,,2099-06-10,Tokyo,KOR,AUS,2,1,,,,,
+U20-2099-F-07,2099,final,Final,,2099-06-10,Tokyo,PRK,JPN,0,1,,,,,
