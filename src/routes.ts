@@ -1,4 +1,5 @@
 // Hash routing, kept free of the DOM so it can be tested.
+import { COMP, eventHref, fromSlug } from "./competitions";
 import { sameEdition, type Competition, type Edition, type Match } from "./model";
 
 export const TABS = [
@@ -24,22 +25,6 @@ export interface Route {
 }
 
 export type Resolved = { route: Route } | { redirect: string };
-
-/**
- * The most recent event, which the site opens on (owner's decision on #10):
- * the latest edition with at least one match in the data, qualifiers included.
- * With no matches at all, the latest completed edition.
- */
-export function latestEventYear(all: Edition[], allMatches: Match[]): number | undefined {
-  // U-17 only until the routes know about competitions (#30, phase 1b).
-  const editions = all.filter((e) => e.competition === "U17");
-  const matches = allMatches.filter((m) => m.competition === "U17");
-  const years = new Set(editions.map((e) => e.year));
-  const played = matches.map((m) => m.year).filter((y) => years.has(y));
-  if (played.length) return Math.max(...played);
-  const done = editions.filter((e) => e.status === "completed").map((e) => e.year);
-  return done.length ? Math.max(...done) : undefined;
-}
 
 /**
  * The most recent event across competitions: the edition whose latest match is the most
@@ -68,8 +53,11 @@ export function resolve(hash: string, ctx: RouteContext): Resolved {
   const [view, ...args] = path.split("/").filter(Boolean).map(decodeURIComponent);
   const q = new URLSearchParams(query);
   const to = (h: string): Resolved => ({ redirect: h });
-  const home = to(ctx.latest !== undefined ? `#/events/${ctx.latest.year}` : "#/events");
-  const year = (y: string | null | undefined) => (y && ctx.years.U17.includes(Number(y)) ? Number(y) : undefined);
+  const page = (r: Route): Resolved => ({ route: r });
+  // Old links all meant U-17, and each redirects straight to its final page (amendment D).
+  const u17 = "#/events/u17";
+  const home = to(ctx.latest ? eventHref(ctx.latest.competition, ctx.latest.year) : u17);
+  const yearIn = (c: Competition, y: string | null | undefined) => (y && /^\d+$/.test(y) && ctx.years[c].includes(Number(y)) ? Number(y) : undefined);
   const team = (c: string | null | undefined) => (c && ctx.hasTeam(c) ? c : undefined);
   const pair = (a?: string, b?: string) => {
     const t = team(a) ?? ctx.focus;
@@ -79,31 +67,40 @@ export function resolve(hash: string, ctx: RouteContext): Resolved {
 
   switch (view) {
     case "events": {
-      if (!args.length) return { route: { view: "events", args: [] } };
-      const y = year(args[0]);
-      return y !== undefined && args.length === 1 ? { route: { view: "events", args: [String(y)] } } : home;
+      if (!args.length) return to(u17);
+      const c = fromSlug(args[0]);
+      if (c) {
+        if (args.length === 1) return page({ view: "events", args: [COMP[c].slug] });
+        const y = yearIn(c, args[1]);
+        return y !== undefined && args.length === 2 ? page({ view: "events", args: [COMP[c].slug, String(y)] }) : home;
+      }
+      const y = args.length === 1 ? yearIn("U17", args[0]) : undefined; // old #/events/<year>
+      return y !== undefined ? to(eventHref("U17", y)) : home;
     }
     case "team": {
       const [a, vs, b] = args;
+      const c = q.get("c");
+      const filter = fromSlug(c);
+      const suffix = filter ? `?c=${COMP[filter].slug}` : "";
       const ok = team(a) && (args.length === 1 || (args.length === 3 && vs === "vs" && team(b) && b !== a));
-      return ok ? { route: { view: "team", args } } : to(pair(a, vs === "vs" ? b : undefined));
+      if (!ok) return to(pair(a, vs === "vs" ? b : undefined) + suffix);
+      if (c !== null && !filter) return to(`#/team/${args.join("/")}`); // ?c=both or junk: both competitions
+      return page({ view: "team", args, ...(filter ? { filter } : {}) });
     }
-    // Old links (before #10) keep working.
     case "overview":
-      return to("#/events");
+    case "records":
+      return to(u17);
     case "edition": {
-      const y = year(args[0]);
-      return to(y !== undefined ? `#/events/${y}` : "#/events");
+      const y = yearIn("U17", args[0]);
+      return to(y !== undefined ? eventHref("U17", y) : u17);
     }
     case "h2h":
       return to(pair(args[0], args[1]));
     case "matches": {
-      const y = year(q.get("year")); // year wins over team
+      const y = yearIn("U17", q.get("year")); // year wins over team
       const t = team(q.get("team"));
-      return to(y !== undefined ? `#/events/${y}` : t ? `#/team/${t}` : "#/events");
+      return to(y !== undefined ? eventHref("U17", y) : t ? `#/team/${t}` : u17);
     }
-    case "records":
-      return to("#/events");
     default:
       return home;
   }
