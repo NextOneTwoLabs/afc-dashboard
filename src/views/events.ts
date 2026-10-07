@@ -30,7 +30,7 @@ export function events(ds: Dataset): string {
   const finals = ds.matches.filter((m) => m.phase === "final");
 
   const tiles = `<div class="tiles">
-    <div class="tile"><div class="k">Editions</div><div class="v">${held.length}</div><div class="s">${held[0]?.year ?? ""}–${held.at(-1)?.year ?? ""}</div></div>
+    <div class="tile"><div class="k">Editions held</div><div class="v">${held.length}</div><div class="s">${held[0]?.year ?? ""}–${held.at(-1)?.year ?? ""}</div></div>
     <div class="tile"><div class="k">Matches in data</div><div class="v">${ds.matches.length}</div><div class="s">${finals.length} finals · ${ds.matches.length - finals.length} qualifiers</div></div>
     <div class="tile"><div class="k">Goals</div><div class="v">${goals}</div><div class="s">${ds.matches.length ? (goals / ds.matches.length).toFixed(2) : "–"} per match</div></div>
     <div class="tile"><div class="k">Nations</div><div class="v">${activeTeams(ds).length}</div><div class="s">played or placed</div></div>

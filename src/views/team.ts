@@ -4,7 +4,12 @@ import { FINISHES, activeTeams, biggestWins, finish, involves, outcome, record, 
 import { FOCUS, esc, fmtDate, matchTable, teamLink, teamName } from "../ui";
 
 export function teamSelect(ds: Dataset, current: string, id: string, label: string, opts: { blank?: boolean; exclude?: string } = {}): string {
-  const codes = (activeTeams(ds).length ? activeTeams(ds) : [...ds.teams.keys()]).filter((c) => c !== opts.exclude);
+  const active = activeTeams(ds).length ? activeTeams(ds) : [...ds.teams.keys()];
+  // Always list the team being viewed, even one with no matches or podium place yet.
+  const all = current && ds.teams.has(current) && !active.includes(current) ? [...active, current] : active;
+  const codes = all
+    .filter((c) => c !== opts.exclude)
+    .sort((a, b) => teamName(ds, a).localeCompare(teamName(ds, b)));
   return `<label>${esc(label)}<select id="${id}">${opts.blank ? `<option value="" ${current ? "" : "selected"}>—</option>` : ""}${codes
     .map((c) => `<option value="${esc(c)}" ${c === current ? "selected" : ""}>${esc(ds.teams.get(c)?.flag ?? "")} ${esc(teamName(ds, c))}</option>`)
     .join("")}</select></label>`;
@@ -53,14 +58,17 @@ export function team(ds: Dataset, codeParam?: string, oppParam?: string): string
   const chart = `<div class="card"><h2>Finish by edition</h2>${ordinalChart(points, levels, { title: `${t.name} finish at each edition` })}
     <p class="small muted" style="margin:6px 0 0">No dot = did not enter, or no data yet for that edition.</p></div>`;
 
-  const byYear = held
+  // Completed editions, plus any other edition the team has played in (e.g. qualifiers under way),
+  // so every match counted in the tiles has a row here.
+  const byYear = ds.editions
+    .filter((e) => e.status === "completed" || ms.some((m) => m.year === e.year))
     .map((e) => {
       const ym = ms.filter((m) => m.year === e.year);
       const q = record(ym.filter((m) => m.phase === "qualifying"), code);
       const f = record(ym.filter((m) => m.phase === "final"), code);
-      const fin = finish(ds, e, code);
+      const fin = e.status === "scheduled" ? "In progress" : e.status === "cancelled" ? "Cancelled" : finish(ds, e, code);
       if (!ym.length && (!fin || fin === "Did not enter")) return "";
-      const cell = (r: typeof q) => (r.p ? `${r.w}-${r.d}-${r.l} <span class="muted small">(${r.gf}:${r.ga})</span>` : `<span class="muted">—</span>`);
+      const cell = (r: typeof q) => (r.p ? `${r.w}-${r.d}-${r.l}<span class="muted small hide-sm"> (${r.gf}:${r.ga})</span>` : `<span class="muted">—</span>`);
       return `<tr><td><a href="#/events/${e.year}">${e.year}</a></td><td>${cell(q)}</td><td>${cell(f)}</td><td>${esc(fin ?? "")}</td></tr>`;
     })
     .join("");
@@ -77,7 +85,7 @@ export function team(ds: Dataset, codeParam?: string, oppParam?: string): string
     ${opp ? comparison(ds, code, opp) : ""}
     <div class="grid cols-2">${chart}<div class="card"><h2>By edition</h2>${
       byYear
-        ? `<div class="table-wrap"><table><thead><tr><th>Year</th><th>Qualifiers W-D-L</th><th>Finals W-D-L</th><th>Finish</th></tr></thead><tbody>${byYear}</tbody></table></div>`
+        ? `<div class="table-wrap"><table><thead><tr><th>Year</th><th><span class="hide-sm">Qualifiers W-D-L</span><span class="hide-lg">Qual.</span></th><th><span class="hide-sm">Finals W-D-L</span><span class="hide-lg">Finals</span></th><th>Finish</th></tr></thead><tbody>${byYear}</tbody></table></div>`
         : `<div class="empty">No results yet.</div>`
     }</div></div>
     <div class="grid cols-2">${winsCard}</div>

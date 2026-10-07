@@ -1,1 +1,1 @@
-Keep the seat names across restarts. Resume an agent with SendMessage rather than spawning a new one.
+Keep the seat names across restarts. Within a task, resume an agent with SendMessage rather than spawning a new one. At a task boundary an engineer may start fresh, on the model the task's tier calls for (owner: "Adopt", 2026-10-06).

@@ -70,9 +70,12 @@ function rows(matches: Match[], teams: string[]): StandingRow[] {
  * difference and goals among the tied teams, then overall goal difference and
  * goals scored. (Fair-play and drawing of lots can't be derived from scores;
  * those rare cases are fixed by match order in the data notes.)
+ *
+ * `drawn` lists the teams drawn into the group: any without a match yet get a
+ * row of zeros. Teams that have played are not counted twice.
  */
-export function standings(matches: Match[]): StandingRow[] {
-  const teams = [...new Set(matches.flatMap((m) => [m.home, m.away]))];
+export function standings(matches: Match[], drawn: string[] = []): StandingRow[] {
+  const teams = [...new Set([...matches.flatMap((m) => [m.home, m.away]), ...drawn])];
   const table = rows(matches, teams);
 
   const byPts = new Map<number, StandingRow[]>();
@@ -113,7 +116,17 @@ export function groups(matches: Match[], year: number, phase: Phase): Map<string
   return out;
 }
 
-export const FINISHES = ["Champion", "Runner-up", "Third", "Fourth", "Group stage", "Qualifying", "Did not enter"] as const;
+export const FINISHES = [
+  "Champion",
+  "Runner-up",
+  "Third",
+  "Fourth",
+  "Semi-finals",
+  "Quarter-finals",
+  "Group stage",
+  "Qualifying",
+  "Did not enter",
+] as const;
 export type Finish = (typeof FINISHES)[number];
 
 export function finish(ds: Dataset, ed: Edition, team: string): Finish | undefined {
@@ -123,7 +136,11 @@ export function finish(ds: Dataset, ed: Edition, team: string): Finish | undefin
   if (ed.third === team) return "Third";
   if (ed.fourth === team) return "Fourth";
   const ms = ds.matches.filter((m) => m.year === ed.year && involves(m, team));
-  if (ms.some((m) => m.phase === "final")) return "Group stage";
+  const finals = ms.filter((m) => m.phase === "final");
+  // Without a podium place, the furthest knockout round reached (README round names).
+  if (finals.some((m) => m.round === "Semi-final")) return "Semi-finals";
+  if (finals.some((m) => m.round === "Quarter-final")) return "Quarter-finals";
+  if (finals.length) return "Group stage";
   if (ms.some((m) => m.phase === "qualifying")) return "Qualifying";
   return "Did not enter";
 }
@@ -144,7 +161,8 @@ export function teamSummary(ds: Dataset, code: string): TeamSummary {
     code,
     finals: record(ds.matches.filter((m) => m.phase === "final"), code),
     qualifying: record(ds.matches.filter((m) => m.phase === "qualifying"), code),
-    appearances: new Set(ds.matches.filter((m) => m.phase === "final" && involves(m, code)).map((m) => m.year)).size,
+    // Completed editions with a finals-level finish: a podium place counts even without match rows.
+    appearances: fins.filter((f) => FINISHES.indexOf(f) <= FINISHES.indexOf("Group stage")).length,
     titles: ds.editions.filter((e) => e.champion === code).length,
     best,
   };

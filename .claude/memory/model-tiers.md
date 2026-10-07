@@ -1,0 +1,1 @@
+Model per task, not per engineer (owner: "Adopt"). Opus 5.5: risky work, source conflicts, first-time plans, escalations. Sonnet 5.5: builds from an approved detailed plan, small contained fixes, follow-up commits, merging main, read-only checks. Haiku: not used.

@@ -9,10 +9,11 @@ export const esc = (s: unknown) =>
 
 export const teamName = (ds: Dataset, code: string) => ds.teams.get(code)?.name ?? code;
 
+// A word joiner (U+2060) keeps the flag on the same line as the name when a long name wraps.
 export function teamLink(ds: Dataset, code: string | undefined): string {
   if (!code) return `<span class="muted">—</span>`;
   const t = ds.teams.get(code);
-  return `<a class="team${code === FOCUS ? " hk" : ""}" href="#/team/${esc(code)}"><span class="flag" aria-hidden="true">${esc(t?.flag ?? "")}</span>${esc(t?.name ?? code)}</a>`;
+  return `<a class="team${code === FOCUS ? " hk" : ""}" href="#/team/${esc(code)}"><span class="flag" aria-hidden="true">${esc(t?.flag ?? "")}</span>\u2060${esc(t?.name ?? code)}</a>`;
 }
 
 export const resBadge = (o: Outcome) => `<span class="res ${o}" title="${{ W: "Win", D: "Draw", L: "Loss" }[o]}">${o}</span>`;

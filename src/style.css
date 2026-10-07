@@ -168,6 +168,8 @@ select, input[type="search"] { font: inherit; font-size: 14px; padding: 6px 8px;
 .tooltip { position: fixed; pointer-events: none; z-index: 20; background: var(--text-primary); color: var(--surface-1); font-size: 12px; padding: 6px 8px; border-radius: 6px; max-width: 240px; opacity: 0; transition: opacity 0.08s; }
 .tooltip.on { opacity: 1; }
 
+.hide-lg { display: none; } /* shown only at phone width, in place of a .hide-sm label */
+
 .empty { padding: 24px; text-align: center; color: var(--text-muted); border: 1px dashed var(--border); border-radius: var(--radius); }
 
 footer { border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; padding: 16px 0 32px; }
@@ -178,6 +180,9 @@ footer { border-top: 1px solid var(--border); color: var(--text-muted); font-siz
 @media (max-width: 560px) {
   h1 { font-size: 20px; }
   .chart text { font-size: 21px; }
+  .chart text.thin { display: none; }
   .hide-sm { display: none; }
-  th, td { padding: 6px 5px; }
+  .hide-lg { display: revert; }
+  td .team { white-space: normal; } /* long names wrap instead of pushing columns out */
+  th, td { padding: 6px 4px; }
 }

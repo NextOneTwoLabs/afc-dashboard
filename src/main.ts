@@ -1,5 +1,6 @@
 import "./style.css";
 import { buildDataset, type Dataset } from "./model";
+import drawsCsv from "../data/draws.csv?raw";
 import editionsCsv from "../data/editions.csv?raw";
 import matchesCsv from "../data/matches.csv?raw";
 import teamsCsv from "../data/teams.csv?raw";
@@ -13,7 +14,7 @@ import { FOCUS } from "./ui";
 
 // ?demo loads the fictional fixture (years 2099/2101) for UI development.
 const demo = new URLSearchParams(location.search).has("demo");
-const ds: Dataset = demo ? buildDataset(teamsCsv, demoEditions, demoMatches) : buildDataset(teamsCsv, editionsCsv, matchesCsv);
+const ds: Dataset = demo ? buildDataset(teamsCsv, demoEditions, demoMatches) : buildDataset(teamsCsv, editionsCsv, matchesCsv, drawsCsv);
 
 const app = document.getElementById("app")!;
 const nav = document.getElementById("tabs")!;

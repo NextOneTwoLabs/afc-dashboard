@@ -38,6 +38,8 @@ Everything lives in plain CSV under [`data/`](data/), so results can be fixed wi
 | `hp`, `ap` | penalty shoot-out score, if any |
 | `source` | URL of the match report or page the result came from |
 
+- `draws.csv` — one row per team drawn into a group: `year`, `phase`, `round`, `group` (same values as in `matches.csv`), `team`, `notes`, `source`. It lets a group table list a drawn team that hasn't played yet, with zeros. For now it holds only the 2027 qualifiers (8 groups, 29 teams; Iran withdrew after the draw and is left out), from the pinned Wikipedia revision [oldid 1378683887](https://en.wikipedia.org/w/index.php?title=2027_AFC_U-17_Women%27s_Asian_Cup_qualification&oldid=1378683887). Groups with no rows here list only the teams in their matches. Keep the header even if the file is ever emptied: the site imports it.
+
 `npm test` checks the data: known team codes, valid dates and scores, no penalties after a decisive score, every knockout match has a winner, and the edition podium agrees with the Final and Third-place matches.
 
 Conventions: shoot-out results count as **draws** in records; group tables use AFC tie-breakers (points, head-to-head, then goal difference and goals).
