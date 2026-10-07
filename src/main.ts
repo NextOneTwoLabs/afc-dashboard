@@ -113,7 +113,7 @@ const applyTheme = () => {
   else document.documentElement.setAttribute("data-theme", theme);
   // The family's 36px icon toggle; the three states stay (Auto follows the system setting).
   const label = { auto: "Auto", light: "Light", dark: "Dark" }[theme];
-  themeBtn.textContent = { auto: "◐", light: "☀", dark: "🌙" }[theme];
+  themeBtn.textContent = { auto: "🌓", light: "☀", dark: "🌙" }[theme];
   themeBtn.setAttribute("aria-label", `Colour theme: ${label}`);
   themeBtn.title = `Colour theme: ${label} (click to change)`;
 };
