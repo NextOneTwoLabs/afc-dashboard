@@ -1,4 +1,4 @@
-import type { Competition, Dataset, Edition, Match, Phase } from "./model";
+import { forCompetition, sameEdition, type Competition, type Dataset, type Edition, type Match, type Phase } from "./model";
 
 export type Outcome = "W" | "D" | "L";
 
@@ -106,10 +106,10 @@ export function standings(matches: Match[], drawn: string[] = []): StandingRow[]
 }
 
 /** Group matches of one edition/phase keyed by "Round · Group X". */
-export function groups(matches: Match[], year: number, phase: Phase, _competition: Competition = "U17"): Map<string, Match[]> {
+export function groups(matches: Match[], year: number, phase: Phase, competition: Competition = "U17"): Map<string, Match[]> {
   const out = new Map<string, Match[]>();
   for (const m of matches) {
-    if (m.year !== year || m.phase !== phase || isKnockout(m)) continue;
+    if (m.competition !== competition || m.year !== year || m.phase !== phase || isKnockout(m)) continue;
     const key = `${m.round} · Group ${m.group}`;
     out.set(key, [...(out.get(key) ?? []), m]);
   }
@@ -135,7 +135,7 @@ export function finish(ds: Dataset, ed: Edition, team: string): Finish | undefin
   if (ed.runnerUp === team) return "Runner-up";
   if (ed.third === team) return "Third";
   if (ed.fourth === team) return "Fourth";
-  const ms = ds.matches.filter((m) => m.year === ed.year && involves(m, team));
+  const ms = ds.matches.filter((m) => sameEdition(m, ed) && involves(m, team));
   const finals = ms.filter((m) => m.phase === "final");
   // Without a podium place, the furthest knockout round reached (README round names).
   if (finals.some((m) => m.round === "Semi-final")) return "Semi-finals";
@@ -155,7 +155,8 @@ export interface TeamSummary {
 }
 
 /** With `competition`, only that competition; without it, all competitions together. */
-export function teamSummary(ds: Dataset, code: string, _competition?: Competition): TeamSummary {
+export function teamSummary(all: Dataset, code: string, competition?: Competition): TeamSummary {
+  const ds = competition ? forCompetition(all, competition) : all;
   const fins = ds.editions.map((e) => finish(ds, e, code)).filter((f): f is Finish => !!f);
   const best = fins.filter((f) => f !== "Did not enter").sort((a, b) => FINISHES.indexOf(a) - FINISHES.indexOf(b))[0];
   return {

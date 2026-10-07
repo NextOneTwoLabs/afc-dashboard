@@ -151,17 +151,25 @@ export interface CompetitionCsv {
  * `drawsCsv` is optional: without it, group tables list only teams that have a match.
  * `u20` is optional too: without it the dataset holds only U-17 rows.
  */
-export function buildDataset(teamsCsv: string, editionsCsv: string, matchesCsv: string, drawsCsv = "", _u20?: CompetitionCsv): Dataset {
+export function buildDataset(teamsCsv: string, editionsCsv: string, matchesCsv: string, drawsCsv = "", u20?: CompetitionCsv): Dataset {
+  const order = (c: Competition) => COMPETITIONS.indexOf(c);
   return {
     teams: new Map(parseTeams(teamsCsv).map((t) => [t.code, t])),
-    editions: parseEditions(editionsCsv, "U17"),
-    matches: parseMatches(matchesCsv, "U17"),
-    draws: parseDraws(drawsCsv, "U17"),
+    // By year, U-17 first within a year.
+    editions: [...parseEditions(editionsCsv, "U17"), ...(u20 ? parseEditions(u20.editions, "U20") : [])].sort(
+      (a, b) => a.year - b.year || order(a.competition) - order(b.competition),
+    ),
+    // By date then id, as before; U-20 ids start with "U20-", so they never collide.
+    matches: [...parseMatches(matchesCsv, "U17"), ...(u20 ? parseMatches(u20.matches, "U20") : [])].sort(
+      (a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id),
+    ),
+    draws: [...parseDraws(drawsCsv, "U17"), ...(u20 ? parseDraws(u20.draws ?? "", "U20") : [])],
   };
 }
 
 /** True when a match or draw belongs to the given edition. */
-export const sameEdition = (x: { competition: Competition; year: number }, ed: { competition: Competition; year: number }) => x.year === ed.year;
+export const sameEdition = (x: { competition: Competition; year: number }, ed: { competition: Competition; year: number }) =>
+  x.competition === ed.competition && x.year === ed.year;
 
 /** The dataset restricted to one competition (teams stay shared). */
 export function forCompetition(ds: Dataset, c: Competition): Dataset {

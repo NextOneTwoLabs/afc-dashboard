@@ -1,13 +1,13 @@
-import type { Competition, Dataset, Edition, Phase } from "../model";
+import { forCompetition, sameEdition, type Competition, type Dataset, type Edition, type Phase } from "../model";
 import { groups, isKnockout, standings, winner } from "../stats";
 import { FOCUS, emptyData, esc, fmtDate, matchTable, teamLink } from "../ui";
 
 const KO_ORDER = ["Play-off", "Quarter-final", "Semi-final", "Third place", "Final"];
 
-function phaseSection(ds: Dataset, year: number, phase: Phase): string {
-  const gs = groups(ds.matches, year, phase);
+function phaseSection(ds: Dataset, ed: Edition, phase: Phase): string {
+  const gs = groups(ds.matches, ed.year, phase, ed.competition);
   const ko = ds.matches
-    .filter((m) => m.year === year && m.phase === phase && isKnockout(m))
+    .filter((m) => sameEdition(m, ed) && m.phase === phase && isKnockout(m))
     .sort((a, b) => KO_ORDER.indexOf(a.round) - KO_ORDER.indexOf(b.round) || a.date.localeCompare(b.date));
   if (!gs.size && !ko.length) return "";
 
@@ -15,7 +15,7 @@ function phaseSection(ds: Dataset, year: number, phase: Phase): string {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([name, ms]) => {
       const { round, group } = ms[0];
-      const drawn = ds.draws.filter((d) => d.year === year && d.phase === phase && d.round === round && d.group === group).map((d) => d.team);
+      const drawn = ds.draws.filter((d) => sameEdition(d, ed) && d.phase === phase && d.round === round && d.group === group).map((d) => d.team);
       const rows = standings(ms, drawn)
         .map(
           (r, i) => `<tr class="${r.team === FOCUS ? "hk" : ""}"><td class="num muted">${i + 1}</td><td>${teamLink(ds, r.team)}</td>
@@ -42,7 +42,7 @@ function phaseSection(ds: Dataset, year: number, phase: Phase): string {
  */
 function jointSemiFinalists(ds: Dataset, ed: Edition): string[] | undefined {
   if (ed.status !== "completed" || ed.third || ed.fourth) return undefined;
-  const ko = ds.matches.filter((m) => m.year === ed.year && m.phase === "final");
+  const ko = ds.matches.filter((m) => sameEdition(m, ed) && m.phase === "final");
   if (ko.some((m) => m.round === "Third place")) return undefined;
   const losers = ko
     .filter((m) => m.round === "Semi-final")
@@ -53,7 +53,9 @@ function jointSemiFinalists(ds: Dataset, ed: Edition): string[] | undefined {
   return losers.length === 2 && losers.every(Boolean) && losers[0] !== losers[1] ? (losers as string[]) : undefined;
 }
 
-export function edition(ds: Dataset, yearParam?: string, _competition: Competition = "U17"): string {
+/** One edition of one competition (U-17 by default, as linked from the site today). */
+export function edition(all: Dataset, yearParam?: string, competition: Competition = "U17"): string {
+  const ds = forCompetition(all, competition);
   const eds = ds.editions;
   const ed = eds.find((e) => String(e.year) === yearParam) ?? [...eds].reverse().find((e) => e.status === "completed") ?? eds[0];
   if (!ed) return emptyData();
@@ -74,11 +76,11 @@ export function edition(ds: Dataset, yearParam?: string, _competition: Competiti
           }</div>`
       : ed.status === "cancelled"
         ? `<div class="empty">This edition was cancelled.</div>`
-        : ds.matches.some((m) => m.year === ed.year)
+        : ds.matches.some((m) => sameEdition(m, ed))
           ? `<p class="muted" style="margin:0">Final tournament not yet held. Qualifying results are below.</p>`
           : `<div class="empty">This edition hasn't been played yet.</div>`;
 
-  const body = phaseSection(ds, ed.year, "final") + phaseSection(ds, ed.year, "qualifying");
+  const body = phaseSection(ds, ed, "final") + phaseSection(ds, ed, "qualifying");
 
   return `<p class="small" style="margin:0 0 8px"><a href="#/events">← All events</a></p>${chips}<h1>${ed.year} ${esc(ed.name)}</h1>
     <p class="lede">U-${ed.ageLimit} · Hosted by ${esc(ed.host)} · ${esc(dates)}

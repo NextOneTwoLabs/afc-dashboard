@@ -1,5 +1,5 @@
 // Hash routing, kept free of the DOM so it can be tested.
-import type { Competition, Edition, Match } from "./model";
+import { sameEdition, type Competition, type Edition, type Match } from "./model";
 
 export const TABS = [
   ["events", "Events"],
@@ -27,7 +27,10 @@ export type Resolved = { route: Route } | { redirect: string };
  * the latest edition with at least one match in the data, qualifiers included.
  * With no matches at all, the latest completed edition.
  */
-export function latestEventYear(editions: Edition[], matches: Match[]): number | undefined {
+export function latestEventYear(all: Edition[], allMatches: Match[]): number | undefined {
+  // U-17 only until the routes know about competitions (#30, phase 1b).
+  const editions = all.filter((e) => e.competition === "U17");
+  const matches = allMatches.filter((m) => m.competition === "U17");
   const years = new Set(editions.map((e) => e.year));
   const played = matches.map((m) => m.year).filter((y) => years.has(y));
   if (played.length) return Math.max(...played);
@@ -40,8 +43,21 @@ export function latestEventYear(editions: Edition[], matches: Match[]): number |
  * recent (a tie on the date goes to U-17). With no matches, the latest completed edition.
  */
 export function latestEvent(editions: Edition[], matches: Match[]): { competition: Competition; year: number } | undefined {
-  const year = latestEventYear(editions, matches);
-  return year === undefined ? undefined : { competition: "U17", year };
+  const rank = (c: Competition) => (c === "U17" ? 1 : 0); // U-17 wins ties
+  let best: { e: Edition; key: string } | undefined;
+  for (const e of editions) {
+    const last = matches.filter((m) => sameEdition(m, e)).reduce((d, m) => (m.date > d ? m.date : d), "");
+    if (!last) continue;
+    const key = `${last}|${rank(e.competition)}`;
+    if (!best || key > best.key) best = { e, key };
+  }
+  if (!best) {
+    for (const e of editions.filter((e) => e.status === "completed")) {
+      const key = `${String(e.year).padStart(4, "0")}|${rank(e.competition)}`;
+      if (!best || key > best.key) best = { e, key };
+    }
+  }
+  return best && { competition: best.e.competition, year: best.e.year };
 }
 
 export function resolve(hash: string, ctx: RouteContext): Resolved {
