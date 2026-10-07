@@ -156,3 +156,68 @@ describe("U-20 finals, 2013-2026", () => {
     expect(e!.notes).toMatch(/COVID-19/);
   });
 });
+
+// Phase 3a (issue #30): U-20 qualifiers, 2006-2013 (the first batch). Counted from the match
+// boxes of the pinned Wikipedia "<year> AFC U-19 Women's Championship qualification" revisions
+// and reconciled with each page's group tables (these pages have no infobox totals).
+// Ids are U20-<year>-Q-R<round>-<group>-<nn>, <nn> being the match's place in its group's
+// fixture list (by date, then the page's order on the same day). 2006 was played in four
+// zones, stored as groups A-D (North, East, South, West). The 2013 round-2 play-off has no
+// group, so its id is U20-2013-Q-R2-PO-01. Withdrawn teams (HKG 2011, KGZ 2013) have no rows.
+const QUALIFIERS: Record<number, { oldid: number; groups: Record<string, number>; goals: number }> = {
+  2006: { oldid: 1368747898, groups: { "R1-A": 3, "R1-B": 3, "R1-C": 3, "R1-D": 3 }, goals: 68 },
+  2007: { oldid: 1367570282, groups: { "R1-A": 10, "R1-B": 6 }, goals: 92 },
+  2009: { oldid: 1368748219, groups: { "R1-A": 15, "R1-B": 10 }, goals: 206 },
+  2011: { oldid: 1371425101, groups: { "R1-A": 3, "R1-B": 6, "R2-A": 10 }, goals: 82 },
+  2013: { oldid: 1371434506, groups: { "R1-A": 3, "R1-B": 6, "R1-C": 6, "R2-A": 6, "R2-B": 6 }, goals: 122 },
+};
+
+describe("U-20 qualifiers, 2006-2013", () => {
+  const qual = (year: number) => ds.matches.filter((m) => m.year === year && m.phase === "qualifying");
+
+  it.each(Object.entries(QUALIFIERS))("%s has every group's matches, numbered by group", (year, want) => {
+    const ms = qual(Number(year));
+    const expected = Object.entries(want.groups).flatMap(([key, n]) =>
+      Array.from({ length: n }, (_, i) => `U20-${year}-Q-${key.split("-")[0]}-${key.split("-")[1]}-${String(i + 1).padStart(2, "0")}`),
+    );
+    if (year === "2013") expected.push("U20-2013-Q-R2-PO-01");
+    expect(ms.map((m) => m.id).sort()).toEqual(expected.sort());
+  });
+
+  it.each(Object.entries(QUALIFIERS))("%s qualifiers have the page's goal total and cite their pinned page", (year, want) => {
+    const ms = qual(Number(year));
+    expect(ms.length).toBeGreaterThan(0);
+    expect(ms.reduce((t, m) => t + m.hs + m.as, 0)).toBe(want.goals);
+    for (const m of ms) {
+      expect(m.source, m.id).toBe(`https://en.wikipedia.org/w/index.php?title=${year}_AFC_U-19_Women%27s_Championship_qualification&oldid=${want.oldid}`);
+    }
+  });
+
+  it("has round names and groups that match the ids", () => {
+    for (const m of ds.matches.filter((m) => m.phase === "qualifying" && m.year <= 2013)) {
+      const [, , , r, g] = m.id.split("-");
+      expect(m.round, m.id).toBe(g === "PO" ? "Play-off" : r === "R1" ? "Round 1" : "Round 2");
+      expect(m.group, m.id).toBe(g === "PO" ? "" : g);
+    }
+  });
+
+  it("has the 2013 play-off (MYA beat THA) as the only qualifying knockout match", () => {
+    const ko = ds.matches.filter((m) => m.phase === "qualifying" && m.group === "" && m.year <= 2013);
+    expect(ko).toHaveLength(1);
+    expect(ko[0]).toMatchObject({ id: "U20-2013-Q-R2-PO-01", round: "Play-off", home: "THA", away: "MYA", hs: 0, as: 1 });
+  });
+
+  it("gives no rows to teams that withdrew", () => {
+    expect(qual(2011).filter((m) => m.home === "HKG" || m.away === "HKG")).toHaveLength(0);
+    expect(qual(2013).filter((m) => m.home === "KGZ" || m.away === "KGZ")).toHaveLength(0);
+  });
+
+  it("lists Hong Kong's qualifier matches", () => {
+    const got = ds.matches.filter((m) => m.phase === "qualifying" && m.year <= 2013 && (m.home === "HKG" || m.away === "HKG")).map((m) => m.id).sort();
+    expect(got).toEqual([
+      "U20-2006-Q-R1-A-02", "U20-2006-Q-R1-A-03", // oldid 1368747898 (North Zone, in Chinese Taipei)
+      "U20-2007-Q-R1-B-02", "U20-2007-Q-R1-B-04", "U20-2007-Q-R1-B-06", // oldid 1367570282
+      "U20-2013-Q-R1-C-02", "U20-2013-Q-R1-C-03", "U20-2013-Q-R1-C-05", // oldid 1371434506
+    ]);
+  });
+});
