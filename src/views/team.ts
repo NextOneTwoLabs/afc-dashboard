@@ -30,8 +30,8 @@ function comparison(ds: Dataset, a: string, b: string): string {
 }
 
 /** A team's page for one competition (U-17 by default, as on the site today). */
-export function team(all: Dataset, codeParam?: string, oppParam?: string, competition: Competition = "U17"): string {
-  const ds = forCompetition(all, competition);
+export function team(all: Dataset, codeParam?: string, oppParam?: string, filter: Competition | "both" = "U17"): string {
+  const ds = forCompetition(all, filter === "both" ? "U17" : filter);
   const code = codeParam && ds.teams.has(codeParam) ? codeParam : FOCUS;
   const opp = oppParam && ds.teams.has(oppParam) && oppParam !== code ? oppParam : undefined;
   const t = ds.teams.get(code)!;

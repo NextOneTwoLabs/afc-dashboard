@@ -8,16 +8,19 @@ export const TABS = [
 
 /** What the router needs to know about the data. */
 export interface RouteContext {
-  years: number[];
+  /** Edition years of each competition. */
+  years: Record<Competition, number[]>;
   hasTeam: (code: string) => boolean;
   focus: string;
-  /** Year of the most recent event: the default page (see latestEventYear). */
-  latest?: number;
+  /** The most recent event: the default page (see latestEvent). */
+  latest?: { competition: Competition; year: number };
 }
 
 export interface Route {
   view: "events" | "team";
   args: string[];
+  /** Team pages: one competition only (?c=u17 or ?c=u20); absent = both. */
+  filter?: Competition;
 }
 
 export type Resolved = { route: Route } | { redirect: string };
@@ -65,8 +68,8 @@ export function resolve(hash: string, ctx: RouteContext): Resolved {
   const [view, ...args] = path.split("/").filter(Boolean).map(decodeURIComponent);
   const q = new URLSearchParams(query);
   const to = (h: string): Resolved => ({ redirect: h });
-  const home = to(ctx.latest !== undefined ? `#/events/${ctx.latest}` : "#/events");
-  const year = (y: string | null | undefined) => (y && ctx.years.includes(Number(y)) ? Number(y) : undefined);
+  const home = to(ctx.latest !== undefined ? `#/events/${ctx.latest.year}` : "#/events");
+  const year = (y: string | null | undefined) => (y && ctx.years.U17.includes(Number(y)) ? Number(y) : undefined);
   const team = (c: string | null | undefined) => (c && ctx.hasTeam(c) ? c : undefined);
   const pair = (a?: string, b?: string) => {
     const t = team(a) ?? ctx.focus;

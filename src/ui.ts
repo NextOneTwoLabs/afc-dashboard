@@ -26,7 +26,7 @@ export const stage = (m: Match) => (isKnockout(m) ? m.round : `${m.round} · Grp
 export const phaseLabel = (p: Match["phase"]) => (p === "final" ? "Finals" : "Qualifiers");
 
 /** Match list; with `perspective`, adds a result column for that team. */
-export function matchTable(ds: Dataset, matches: Match[], opts: { perspective?: string; showEdition?: boolean } = {}): string {
+export function matchTable(ds: Dataset, matches: Match[], opts: { perspective?: string; showEdition?: boolean; showCompetition?: boolean } = {}): string {
   if (!matches.length) return `<div class="empty">No matches.</div>`;
   const { perspective, showEdition = true } = opts;
   const rows = matches

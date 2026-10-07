@@ -4,10 +4,10 @@ import { TABS, latestEventYear, resolve, type RouteContext } from "../src/routes
 import { loadDataset } from "./load";
 
 const ctx: RouteContext = {
-  years: [2005, 2024, 2026, 2027],
+  years: { U17: [2005, 2024, 2026, 2027], U20: [] },
   hasTeam: (c) => ["HKG", "JPN", "PRK", "KOR"].includes(c),
   focus: "HKG",
-  latest: 2026,
+  latest: { competition: "U17", year: 2026 },
 };
 const go = (hash: string) => {
   const r = resolve(hash, ctx);

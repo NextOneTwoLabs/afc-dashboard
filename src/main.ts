@@ -25,11 +25,13 @@ const app = document.getElementById("app")!;
 const nav = document.getElementById("tabs")!;
 
 const ctx = {
-  // The routes and views show U-17 only until phase 1b of #30 adds the competition to them.
-  years: ds.editions.filter((e) => e.competition === "U17").map((e) => e.year),
+  years: {
+    U17: ds.editions.filter((e) => e.competition === "U17").map((e) => e.year),
+    U20: ds.editions.filter((e) => e.competition === "U20").map((e) => e.year),
+  },
   hasTeam: (c: string) => ds.teams.has(c),
   focus: FOCUS,
-  latest: latestEventYear(ds.editions, ds.matches),
+  latest: ((y) => (y === undefined ? undefined : { competition: "U17" as const, year: y }))(latestEventYear(ds.editions, ds.matches)),
 };
 
 function route() {
