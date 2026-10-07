@@ -225,7 +225,9 @@ describe("U-20 qualifiers, 2006-2013", () => {
 // Phase 3b (issue #30): U-20 qualifiers, 2015-2019. Same method as 2006-2013 above. The pages'
 // infoboxes give 18 matches / 85 goals (2015), 18 / 93 (2017) and 49 / 300 (2019: round 1
 // 37 / 244, round 2 12 / 56), which the rows equal. Teams listed in a group table with no
-// match played (withdrawn after the draw) have no rows.
+// match played have no rows: they withdrew after the draw (2017 LBN, SIN, PAK, PHI; 2019 AFG,
+// MNP, PLE), except 2019 SIN, which was moved from group B to group E in the re-draw and played
+// there. The 2019 groups as played had A 4, B 4, C 5, D 4, E 4 and F 3 teams.
 const QUALIFIERS_B: Record<number, { oldid: number; groups: Record<string, number>; goals: number; absent: Record<string, string[]> }> = {
   2015: { oldid: 1314326577, groups: { "R1-A": 6, "R1-B": 3, "R1-C": 6, "R1-D": 3 }, goals: 85, absent: {} },
   2017: { oldid: 1314327337, groups: { "R1-A": 3, "R1-B": 6, "R1-C": 6, "R1-D": 3 }, goals: 93, absent: { "R1-A": ["LBN", "SIN"], "R1-B": ["PAK"], "R1-D": ["PHI"] } },
@@ -274,7 +276,7 @@ describe("U-20 qualifiers, 2015-2019", () => {
     expect([r("Round 2").length, r("Round 2").reduce((t, m) => t + m.hs + m.as, 0)]).toEqual([12, 56]);
   });
 
-  it("gives no rows to teams that withdrew after the draw, in the group they were drawn into", () => {
+  it("gives no rows to teams that withdrew or were moved out of a group, in that group", () => {
     for (const [year, want] of Object.entries(QUALIFIERS_B)) {
       expect(qual(Number(year)).length, `${year} has rows`).toBeGreaterThan(0);
       for (const [key, teams] of Object.entries(want.absent)) {
