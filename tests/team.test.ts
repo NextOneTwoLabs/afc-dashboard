@@ -43,6 +43,11 @@ t11,2093,qualifying,Round 1,A,2092-10-05,X,KOR,THA,1,1,,,,,`,
 );
 const ed = (y: number) => ds.editions.find((e) => e.year === y)!;
 const byEdition = (html: string) => /<h2>By edition<\/h2>([\s\S]*?)<\/table>/.exec(html)?.[1] ?? "";
+/** One "By edition" row as its cell texts joined by " | ", found by its year. */
+const rowText = (rows: string, year: string) =>
+  [...rows.matchAll(/<tr>([\s\S]*?)<\/tr>/g)]
+    .map((r) => [...r[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((c) => c[1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim()).join(" | "))
+    .find((t) => t.startsWith(`${year} |`)) ?? "";
 const podium = (html: string) => /<div class="podium">([\s\S]*?)<\/div><\/div>/.exec(html)?.[1] ?? "";
 
 describe("team pages (#18)", () => {
@@ -67,9 +72,9 @@ describe("team pages (#18)", () => {
 
   it("4. By edition lists a scheduled or cancelled edition the team has played in", () => {
     const rows = byEdition(team(ds, "KOR"));
-    expect(rows).toMatch(/2092<\/a><\/td><td>1-0-0[\s\S]*?In progress/);
-    expect(rows).toMatch(/2093<\/a><\/td><td>0-1-0[\s\S]*?Cancelled/);
-    expect(rows).not.toMatch(/2093[\s\S]*?In progress/);
+    // Cell texts, so the check holds with or without the Competition column (#30).
+    expect(rowText(rows, "2092")).toMatch(/^2092 \| (U-17 \| )?1-0-0 .*\| In progress$/);
+    expect(rowText(rows, "2093")).toMatch(/^2093 \| (U-17 \| )?0-1-0 .*\| Cancelled$/);
   });
 
   it("5. an edition with no third-place match shows its two semi-final losers as joint semi-finalists", () => {
