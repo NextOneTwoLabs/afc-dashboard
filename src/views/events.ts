@@ -1,7 +1,17 @@
 import { barChart } from "../charts";
 import { forCompetition, sameEdition, type Competition, type Dataset, type Match } from "../model";
 import { activeTeams, biggestWins, highestScoring, medalTable, unbeatenRuns } from "../stats";
-import { FOCUS, emptyData, esc, fmtDate, matchTable, teamLink, teamName } from "../ui";
+import { COMP, eventHref } from "../competitions";
+import { COMPETITIONS } from "../model";
+import { FOCUS, emptyData, esc, fmtDate, matchTable, segmented, teamLink, teamName } from "../ui";
+
+/** The U-17 / U-20 switch over a competition's year chips (All events and event pages). */
+export function competitionNav(c: Competition, hrefFor: (other: Competition) => string, chips: string): string {
+  return `${segmented(
+    "Competition",
+    COMPETITIONS.map((o) => ({ label: COMP[o].label, href: hrefFor(o), current: o === c })),
+  )}${chips}`;
+}
 
 /** All-time records: the former Records tab. */
 function records(ds: Dataset): string {
@@ -43,7 +53,7 @@ export function events(all: Dataset, competition: Competition = "U17"): string {
         e.status === "completed"
           ? `<div class="c">🏆 ${esc(teamName(ds, e.champion ?? "")) || "—"}</div>`
           : `<div class="c muted">${e.status === "cancelled" ? "Cancelled" : "Upcoming"}</div>`;
-      return `<a class="ed ${e.status}" href="#/events/${e.year}"><div class="y">${e.year}${e.verified ? "" : ` <span class="badge warn" title="Not yet checked against sources">unverified</span>`}</div><div class="h">U-${e.ageLimit} · ${esc(e.host)}</div>${body}</a>`;
+      return `<a class="ed ${e.status}" href="${eventHref(e.competition, e.year)}"><div class="y">${e.year}${e.verified ? "" : ` <span class="badge warn" title="Not yet checked against sources">unverified</span>`}</div><div class="h">U-${e.ageLimit} · ${esc(e.host)}</div>${body}</a>`;
     })
     .join("")}</div></div>`;
 
@@ -68,7 +78,8 @@ export function events(all: Dataset, competition: Competition = "U17"): string {
       : `<div class="empty">Appears once final-tournament results are loaded.</div>`
   }</div>`;
 
-  return `<h1>All events</h1>
-    <p class="lede">A research reference for every edition of the AFC's youngest women's championship — U-17 in 2005, U-16 from 2007 to 2019, U-17 again since 2024 — qualifiers included. Pick an edition for its groups, knockout and qualifying results.</p>
+  const chips = `<div class="chips">${ds.editions.map((e) => `<a class="chip" href="${eventHref(e.competition, e.year)}">${e.year}</a>`).join("")}</div>`;
+  return `${competitionNav(competition, (o) => eventHref(o), chips)}<h1>All events · ${COMP[competition].label}</h1>
+    <p class="lede">${esc(COMP[competition].lede)} Pick an edition for its groups, knockout and qualifying results.</p>
     ${tiles}${timeline}<div class="grid cols-2" style="margin-top:16px">${medalCard}${goalsCard}</div>${records(ds)}`;
 }
