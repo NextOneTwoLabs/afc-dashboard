@@ -184,10 +184,9 @@ describe("qualifiers, past editions", () => {
 });
 
 // 2027 qualifiers, matchday 2 (played 8 Oct 2026; issue #9). Ids number each group's full
-// fixture list, so the pending games take the missing numbers: A-04 TJK v KOR, E-04 IRQ v MAS
-// and F-04 MAC v THA are not stored yet (no confirmed final result on the AFC site at the
-// time). Results are from the AFC reports on www.the-afc.com and agree with Wikipedia
-// (oldid 1379198219), whose group tables list the same results.
+// fixture list. The first ten results were added on 8 Oct (Wikipedia oldid 1379198219); the other
+// three (A-04, E-04, F-04) once their AFC reports were up (Wikipedia oldid 1379217692). Every
+// result is from an AFC report on www.the-afc.com and agrees with Wikipedia.
 const MD2_2027: Record<string, [string, string, number, number]> = {
   "2027-Q-R1-A-03": ["UAE", "JOR", 0, 6],
   "2027-Q-R1-B-03": ["KSA", "IDN", 1, 3],
@@ -199,6 +198,9 @@ const MD2_2027: Record<string, [string, string, number, number]> = {
   "2027-Q-R1-F-03": ["BHU", "LBN", 0, 5],
   "2027-Q-R1-G-02": ["HKG", "GUM", 9, 0],
   "2027-Q-R1-H-02": ["BAN", "UZB", 2, 1],
+  "2027-Q-R1-A-04": ["TJK", "KOR", 0, 6],
+  "2027-Q-R1-E-04": ["IRQ", "MAS", 0, 4],
+  "2027-Q-R1-F-04": ["MAC", "THA", 0, 9],
 };
 
 describe("2027 qualifiers, matchday 2", () => {
@@ -211,11 +213,9 @@ describe("2027 qualifiers, matchday 2", () => {
     expect(m!.source, id).toMatch(/^https:\/\/www\.the-afc\.com\/en\/national\/afc_u17_womens_asian_cup\.html\/news\/qualifiers-group-/);
   });
 
-  it("has matchday 1 plus these 10 matches and none of the pending games", () => {
-    expect(q).toHaveLength(13 + 10);
-    for (const pending of [["TJK", "KOR"], ["IRQ", "MAS"], ["MAC", "THA"]]) {
-      expect(q.filter((m) => m.home === pending[0] && m.away === pending[1]), pending.join(" v ")).toHaveLength(0);
-    }
+  it("has matchday 1 plus all 13 matchday 2 matches", () => {
+    expect(q).toHaveLength(13 + 13);
+    expect(q.filter((m) => m.date === "2026-10-08")).toHaveLength(13);
   });
 
   it("has Hong Kong's 9-0 win over Guam in group G, 8 October", () => {
