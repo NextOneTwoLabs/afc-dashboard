@@ -1,6 +1,6 @@
 // U-20 family final tournaments, 2002-2011 (the AFC U-19 Women's Championship era; issue #30, phase 2a).
 // Counts and goal totals come from the pinned Wikipedia revisions cited in data/u20/editions.csv.
-// 2004 is not in this batch: its Wikipedia page gives no match dates and no AFC report could be read.
+// 2004 is not in this first batch: its Wikipedia page gives no match dates (see the 2004 block below).
 import { describe, expect, it } from "vitest";
 import { forCompetition } from "../src/model";
 import { loadDataset } from "./load";
@@ -392,5 +392,87 @@ describe("U-20 qualifiers, 2024 and 2026", () => {
     const ms = qual(2026);
     expect(ms.length).toBeGreaterThan(0);
     for (const m of ms) expect(m.notes, m.id).toMatch(/AFC report \(read\): https:\/\/www\.the-afc\.com\/en\/national\/afc_u20_womens_asian_cup\.html\/news\//);
+  });
+});
+
+// 2004 (issue #30). The en.wikipedia page (oldid 1374977045) gives teams, scores and venues
+// but no match dates; the dates come from ko.wikipedia (oldid 39215969), whose teams, scores,
+// venue cities and group tables agree with en for all 29 matches. Ids number the finals by
+// date, then by the en page's order on the same day. PRK v THA was played twice (group D on
+// 31 May, third place on 6 June), both 4-0. Group tables rebuilt from these rows equal the
+// page's; the infobox says 29 matches and 185 goals.
+const FINALS_2004: [string, string, string, string, number, number][] = [
+  ["U20-2004-F-01", "2004-05-26", "TPE", "SIN", 5, 0],
+  ["U20-2004-F-02", "2004-05-26", "IND", "HKG", 2, 1],
+  ["U20-2004-F-03", "2004-05-26", "KOR", "CHN", 2, 1],
+  ["U20-2004-F-04", "2004-05-26", "PHI", "GUM", 3, 0],
+  ["U20-2004-F-05", "2004-05-27", "VIE", "MAS", 17, 0],
+  ["U20-2004-F-06", "2004-05-27", "PRK", "NEP", 19, 0],
+  ["U20-2004-F-07", "2004-05-27", "THA", "UZB", 5, 0],
+  ["U20-2004-F-08", "2004-05-28", "SIN", "IND", 0, 1],
+  ["U20-2004-F-09", "2004-05-28", "HKG", "TPE", 0, 9],
+  ["U20-2004-F-10", "2004-05-28", "KOR", "GUM", 9, 0],
+  ["U20-2004-F-11", "2004-05-28", "PHI", "CHN", 0, 6],
+  ["U20-2004-F-12", "2004-05-29", "VIE", "JPN", 0, 4],
+  ["U20-2004-F-13", "2004-05-29", "NEP", "THA", 1, 6],
+  ["U20-2004-F-14", "2004-05-29", "UZB", "PRK", 0, 13],
+  ["U20-2004-F-15", "2004-05-30", "TPE", "IND", 3, 0],
+  ["U20-2004-F-16", "2004-05-30", "SIN", "HKG", 0, 2],
+  ["U20-2004-F-17", "2004-05-30", "CHN", "GUM", 8, 0],
+  ["U20-2004-F-18", "2004-05-30", "KOR", "PHI", 2, 1],
+  ["U20-2004-F-19", "2004-05-31", "JPN", "MAS", 24, 0],
+  ["U20-2004-F-20", "2004-05-31", "PRK", "THA", 4, 0],
+  ["U20-2004-F-21", "2004-05-31", "UZB", "NEP", 4, 1],
+  ["U20-2004-F-22", "2004-06-02", "JPN", "CHN", 0, 1],
+  ["U20-2004-F-23", "2004-06-02", "TPE", "THA", 0, 3],
+  ["U20-2004-F-24", "2004-06-02", "VIE", "KOR", 1, 5],
+  ["U20-2004-F-25", "2004-06-02", "IND", "PRK", 0, 10],
+  ["U20-2004-F-26", "2004-06-04", "CHN", "PRK", 1, 1],
+  ["U20-2004-F-27", "2004-06-04", "THA", "KOR", 0, 3],
+  ["U20-2004-F-28", "2004-06-06", "PRK", "THA", 4, 0],
+  ["U20-2004-F-29", "2004-06-06", "CHN", "KOR", 0, 3],
+];
+
+describe("U-20 finals, 2004", () => {
+  const ms = () => finals(2004);
+
+  it("has all 29 matches with the dates and results of the two pinned pages", () => {
+    const got = ms().sort((a, b) => a.id.localeCompare(b.id)).map((m) => [m.id, m.date, m.home, m.away, m.hs, m.as]);
+    expect(got).toEqual(FINALS_2004);
+  });
+
+  it("has the infobox's 185 goals and keeps every date inside 25 May - 6 June 2004", () => {
+    expect(ms().reduce((t, m) => t + m.hs + m.as, 0)).toBe(185);
+    expect(ms().length).toBeGreaterThan(0);
+    for (const m of ms()) expect(m.date >= "2004-05-25" && m.date <= "2004-06-06", m.id).toBe(true);
+  });
+
+  it("has groups A-D of 3, 6, 6 and 6 matches, 4 quarter-finals, 2 semi-finals, third place and final", () => {
+    const count = (round: string, group = "") => ms().filter((m) => m.round === round && m.group === group).length;
+    expect([count("Group stage", "A"), count("Group stage", "B"), count("Group stage", "C"), count("Group stage", "D")]).toEqual([3, 6, 6, 6]);
+    expect([count("Quarter-final"), count("Semi-final"), count("Third place"), count("Final")]).toEqual([4, 2, 1, 1]);
+  });
+
+  it("records the semi-final shoot-out and the repeated PRK v THA pairing", () => {
+    expect(ms().find((m) => m.round === "Semi-final" && m.home === "CHN")).toMatchObject({ away: "PRK", hs: 1, as: 1, hp: 6, ap: 5 });
+    const prkTha = ms().filter((m) => m.home === "PRK" && m.away === "THA");
+    expect(prkTha.map((m) => [m.round, m.date, m.hs, m.as])).toEqual([["Group stage", "2004-05-31", 4, 0], ["Third place", "2004-06-06", 4, 0]]);
+  });
+
+  it("has the verified 2004 edition: China PR, 25 May - 6 June, KOR CHN PRK THA", () => {
+    const e = ds.editions.find((e) => e.year === 2004);
+    expect(e, "U20 2004 edition").toBeDefined();
+    expect(e).toMatchObject({ name: "AFC U-19 Women's Championship", host: "China PR", start: "2004-05-25", end: "2004-06-06", status: "completed", verified: true });
+    expect([e!.champion, e!.runnerUp, e!.third, e!.fourth]).toEqual(["KOR", "CHN", "PRK", "THA"]);
+    expect(e!.source).toBe("https://en.wikipedia.org/w/index.php?title=2004_AFC_U-19_Women%27s_Championship&oldid=1374977045");
+    expect(e!.notes).toMatch(/ko\.wikipedia/);
+  });
+
+  it("names both sources on every row", () => {
+    expect(ms().length).toBeGreaterThan(0);
+    for (const m of ms()) {
+      expect(m.source, m.id).toBe("https://en.wikipedia.org/w/index.php?title=2004_AFC_U-19_Women%27s_Championship&oldid=1374977045");
+      expect(m.notes, m.id).toMatch(/en\.wikipedia oldid 1374977045.*ko\.wikipedia oldid 39215969/);
+    }
   });
 });
