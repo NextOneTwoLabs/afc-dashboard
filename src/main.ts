@@ -1,3 +1,10 @@
+// Inter, the nextonetwo family font, self-hosted (#39): Vite bundles the woff2 files; nothing
+// is loaded from Google Fonts or a CDN. Only the weights the design uses.
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "@fontsource/inter/800.css";
 import "./style.css";
 import { buildDataset, type Dataset } from "./model";
 import drawsCsv from "../data/draws.csv?raw";
@@ -111,7 +118,11 @@ try {
 const applyTheme = () => {
   if (theme === "auto") document.documentElement.removeAttribute("data-theme");
   else document.documentElement.setAttribute("data-theme", theme);
-  themeBtn.textContent = { auto: "◐ Auto", light: "☀ Light", dark: "☾ Dark" }[theme];
+  // The family's 36px icon toggle; the three states stay (Auto follows the system setting).
+  const label = { auto: "Auto", light: "Light", dark: "Dark" }[theme];
+  themeBtn.textContent = { auto: "🌓", light: "☀", dark: "🌙" }[theme];
+  themeBtn.setAttribute("aria-label", `Colour theme: ${label}`);
+  themeBtn.title = `Colour theme: ${label} (click to change)`;
 };
 themeBtn.addEventListener("click", () => {
   theme = themes[(themes.indexOf(theme) + 1) % themes.length];

@@ -3,7 +3,7 @@ import { forCompetition, sameEdition, type Competition, type Dataset, type Match
 import { activeTeams, biggestWins, highestScoring, medalTable, unbeatenRuns } from "../stats";
 import { COMP, eventHref } from "../competitions";
 import { COMPETITIONS } from "../model";
-import { FOCUS, emptyData, esc, fmtDate, matchTable, segmented, teamLink, teamName } from "../ui";
+import { FOCUS, emptyData, esc, fmtDate, matchTable, pageHead, segmented, teamLink, teamName } from "../ui";
 
 /** The U-17 / U-20 switch over a competition's year chips (All events and event pages). */
 export function competitionNav(c: Competition, hrefFor: (other: Competition) => string, chips: string): string {
@@ -79,7 +79,7 @@ export function events(all: Dataset, competition: Competition = "U17"): string {
   }</div>`;
 
   const chips = `<div class="chips">${ds.editions.map((e) => `<a class="chip" href="${eventHref(e.competition, e.year)}">${e.year}</a>`).join("")}</div>`;
-  return `${competitionNav(competition, (o) => eventHref(o), chips)}<h1>All events · ${COMP[competition].label}</h1>
-    <p class="lede">${esc(COMP[competition].lede)} Pick an edition for its groups, knockout and qualifying results.</p>
+  return `${pageHead([["Events"], [COMP[competition].label]], `All events · ${COMP[competition].label}`, `${esc(COMP[competition].lede)} Pick an edition for its groups, knockout and qualifying results.`)}
+    <div class="controls">${competitionNav(competition, (o) => eventHref(o), chips)}</div>
     ${tiles}${timeline}<div class="grid cols-2" style="margin-top:16px">${medalCard}${goalsCard}</div>${records(ds)}`;
 }

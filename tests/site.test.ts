@@ -9,7 +9,8 @@ const html = readFileSync(resolve(__dirname, "..", "index.html"), "utf8");
 describe("index.html", () => {
   it("is named AFC Women's Youth Asian Cups", () => {
     expect(html).toContain("<title>AFC Women's Youth Asian Cups — history</title>");
-    expect(html).toMatch(/class="brand"[^>]*>AFC Women's Youth Asian Cups<small>Research reference · U-17 and U-20 · qualifiers included<\/small>/);
+    // #39: the name is now the family header's section label (the wordmark is checked in design.test.ts).
+    expect(html).toMatch(/<a class="section-label" href="#\/">AFC Women's Youth Asian Cups<\/a>/);
     expect(html).toContain(
       `content="Results, tables and records from every AFC U-17 and U-20 Women's Asian Cup (and their U-16 and U-19 eras), qualifiers included."`,
     );

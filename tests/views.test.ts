@@ -18,7 +18,8 @@ describe("views on the demo fixture", () => {
   });
 
   it("an event page links back to its competition's events", () => {
-    expect(edition(ds, "2099")).toMatch(/<a href="#\/events\/u17">← All U-17 events<\/a>/);
+    // #39: the back link is now the page head's breadcrumb, as in the approved mockup.
+    expect(edition(ds, "2099")).toMatch(/<nav class="breadcrumb"[^>]*><a href="#\/events\/u17">All U-17 events<\/a>/);
   });
 
   it("Teams shows the comparison only when an opponent is picked", () => {
@@ -94,7 +95,7 @@ describe("2027 event page while only qualifiers are in the data", () => {
 describe("U-17 / U-20 on the pages", () => {
   const ds = loadDataset("tests/fixtures", "tests/fixtures-u20");
   const seg = (html: string) => /<div class="seg"[^>]*>([\s\S]*?)<\/div>/.exec(html)?.[1] ?? "";
-  const link = (html: string, label: string) => new RegExp(`<a href="([^"]*)"[^>]*>${label}</a>`).exec(seg(html))?.[1];
+  const link = (html: string, label: string) => new RegExp(`<a [^>]*href="([^"]*)"[^>]*>${label}</a>`).exec(seg(html))?.[1];
   const current = (html: string) => /<a [^>]*aria-current="page"[^>]*>([^<]*)<\/a>/.exec(seg(html))?.[1];
 
   it("All events has a heading, a switch and year chips per competition", () => {
@@ -109,7 +110,7 @@ describe("U-17 / U-20 on the pages", () => {
 
   it("an event page switches to the other competition's same year, else to its latest", () => {
     const u20 = edition(ds, "2099", "U20");
-    expect(u20).toContain('<a href="#/events/u20">← All U-20 events</a>');
+    expect(u20).toMatch(/<nav class="breadcrumb"[^>]*><a href="#\/events\/u20">All U-20 events<\/a>/);
     expect(current(u20)).toBe("U-20");
     expect(link(u20, "U-17")).toBe("#/events/u17/2099"); // U-17 has a 2099 edition
     expect(link(edition(ds, "2101", "U17"), "U-20")).toBe("#/events/u20/2099"); // no U-20 2101: its latest

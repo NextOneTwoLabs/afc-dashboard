@@ -17,7 +17,18 @@ export function teamLink(ds: Dataset, code: string | undefined): string {
   return `<a class="team${code === FOCUS ? " hk" : ""}" href="#/team/${esc(code)}"><span class="flag" aria-hidden="true">${esc(t?.flag ?? "")}</span>\u2060${esc(t?.name ?? code)}</a>`;
 }
 
-export const resBadge = (o: Outcome) => `<span class="res ${o}" title="${{ W: "Win", D: "Draw", L: "Loss" }[o]}">${o}</span>`;
+/** A result as the family's form chip (#39): W accent, D slate, L danger. */
+export const resBadge = (o: Outcome) => `<span class="form-chip inline ${o.toLowerCase()}" title="${{ W: "Win", D: "Draw", L: "Loss" }[o]}">${o}</span>`;
+
+/** The family page head (#39): breadcrumb, title and sub-line in a band under the header. */
+export function pageHead(crumbs: [string, string?][], title: string, sub = ""): string {
+  const trail = crumbs
+    .map(([label, href], i) =>
+      i === crumbs.length - 1 ? `<span class="breadcrumb-current">${esc(label)}</span>` : href ? `<a href="${esc(href)}">${esc(label)}</a>` : `<span>${esc(label)}</span>`,
+    )
+    .join(`<span class="breadcrumb-sep" aria-hidden="true">›</span>`);
+  return `<div class="page-head"><nav class="breadcrumb" aria-label="Breadcrumb">${trail}</nav><h1>${title}</h1>${sub ? `<p class="page-sub">${sub}</p>` : ""}</div>`;
+}
 
 export const fmtDate = (iso: string) =>
   iso ? new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "";
@@ -55,7 +66,7 @@ export function matchTable(ds: Dataset, matches: Match[], opts: { perspective?: 
 /** A row of linked options with the current one marked, e.g. the U-17 / U-20 switch. */
 export function segmented(label: string, items: { label: string; href: string; current: boolean }[]): string {
   return `<div class="seg" role="group" aria-label="${esc(label)}">${items
-    .map((i) => `<a href="${esc(i.href)}"${i.current ? ' aria-current="page"' : ""}>${esc(i.label)}</a>`)
+    .map((i) => `<a class="seg-btn${i.current ? " active" : ""}" href="${esc(i.href)}"${i.current ? ' aria-current="page"' : ""}>${esc(i.label)}</a>`)
     .join("")}</div>`;
 }
 

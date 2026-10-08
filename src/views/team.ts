@@ -2,7 +2,7 @@ import { ordinalChart } from "../charts";
 import { COMP, eventHref } from "../competitions";
 import { COMPETITIONS, forCompetition, sameEdition, type Competition, type Dataset } from "../model";
 import { FINISHES, activeTeams, biggestWins, finish, involves, outcome, record, teamSummary, unbeatenRuns, type TeamSummary } from "../stats";
-import { FOCUS, compBadge, esc, fmtDate, matchTable, segmented, teamLink, teamName } from "../ui";
+import { FOCUS, compBadge, esc, fmtDate, matchTable, pageHead, segmented, teamLink, teamName } from "../ui";
 
 export function teamSelect(ds: Dataset, current: string, id: string, label: string, opts: { blank?: boolean; exclude?: string } = {}): string {
   const active = activeTeams(ds).length ? activeTeams(ds) : [...ds.teams.keys()];
@@ -112,9 +112,8 @@ export function team(all: Dataset, codeParam?: string, oppParam?: string, filter
   }</div>`;
 
   const scope = both ? "across both competitions, U-17 and U-20" : `in the ${COMP[comps[0] ?? "U17"].label} competition`;
-  return `<div class="filters">${teamSelect(all, code, "team-pick", "Team")}${teamSelect(all, opp ?? "", "compare-pick", "Compare with…", { blank: true, exclude: code })}${filterNav}</div>
-    <h1><span class="flag">${esc(t.flag)}</span>${esc(t.name)}</h1>
-    <p class="lede">Record, finishes and results ${scope}.${t.formerNames.length ? ` Also listed as ${esc(t.formerNames.join(", "))}.` : ""}</p>
+  return `${pageHead([["Teams"], [t.name]], `<span class="flag">${esc(t.flag)}</span>${esc(t.name)}`, `Record, finishes and results ${scope}.${t.formerNames.length ? ` Also listed as ${esc(t.formerNames.join(", "))}.` : ""}`)}
+    <div class="filters">${teamSelect(all, code, "team-pick", "Team")}${teamSelect(all, opp ?? "", "compare-pick", "Compare with…", { blank: true, exclude: code })}${filterNav}</div>
     ${summaryCard}
     ${opp ? comparison(ds, code, opp) : ""}
     <div class="grid cols-2">${charts}</div>
