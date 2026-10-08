@@ -182,3 +182,43 @@ describe("qualifiers, past editions", () => {
     });
   }
 });
+
+// 2027 qualifiers, matchday 2 (played 8 Oct 2026; issue #9). Ids number each group's full
+// fixture list, so the pending games take the missing numbers: A-04 TJK v KOR, E-04 IRQ v MAS
+// and F-04 MAC v THA are not stored yet (no confirmed final result on the AFC site at the
+// time). Results are from the AFC reports on www.the-afc.com and agree with Wikipedia
+// (oldid 1379198219), whose group tables list the same results.
+const MD2_2027: Record<string, [string, string, number, number]> = {
+  "2027-Q-R1-A-03": ["UAE", "JOR", 0, 6],
+  "2027-Q-R1-B-03": ["KSA", "IDN", 1, 3],
+  "2027-Q-R1-B-04": ["BHR", "SIN", 0, 4],
+  "2027-Q-R1-C-02": ["LAO", "CAM", 3, 1],
+  "2027-Q-R1-D-03": ["PLE", "KGZ", 1, 2],
+  "2027-Q-R1-D-04": ["MNP", "VIE", 0, 20],
+  "2027-Q-R1-E-03": ["SYR", "IND", 0, 2],
+  "2027-Q-R1-F-03": ["BHU", "LBN", 0, 5],
+  "2027-Q-R1-G-02": ["HKG", "GUM", 9, 0],
+  "2027-Q-R1-H-02": ["BAN", "UZB", 2, 1],
+};
+
+describe("2027 qualifiers, matchday 2", () => {
+  const q = loadU17("data").matches.filter((m) => m.year === 2027 && m.phase === "qualifying");
+
+  it.each(Object.entries(MD2_2027))("has %s", (id, [home, away, hs, as]) => {
+    const m = q.find((x) => x.id === id);
+    expect(m, id).toBeDefined();
+    expect(m).toMatchObject({ home, away, hs, as, date: "2026-10-08", round: "Round 1", group: id.split("-")[3] });
+    expect(m!.source, id).toMatch(/^https:\/\/www\.the-afc\.com\/en\/national\/afc_u17_womens_asian_cup\.html\/news\/qualifiers-group-/);
+  });
+
+  it("has matchday 1 plus these 10 matches and none of the pending games", () => {
+    expect(q).toHaveLength(13 + 10);
+    for (const pending of [["TJK", "KOR"], ["IRQ", "MAS"], ["MAC", "THA"]]) {
+      expect(q.filter((m) => m.home === pending[0] && m.away === pending[1]), pending.join(" v ")).toHaveLength(0);
+    }
+  });
+
+  it("has Hong Kong's 9-0 win over Guam in group G, 8 October", () => {
+    expect(q.filter((m) => m.home === "HKG" || m.away === "HKG").map((m) => m.id)).toEqual(["2027-Q-R1-G-02"]);
+  });
+});
