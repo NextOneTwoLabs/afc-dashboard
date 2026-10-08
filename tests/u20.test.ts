@@ -298,3 +298,99 @@ describe("U-20 qualifiers, 2015-2019", () => {
     ]);
   });
 });
+
+// Phase 3c (issue #30): U-20 qualifiers, 2024 and 2026 (the last batch).
+// 2024 (oldid 1362962221): the infobox adds 36 round-1 matches / 176 goals and 12 round-2 / 44,
+// but three of the round-1 matches are Uzbekistan's, the final-tournament hosts, whose games
+// "count as friendlies" and are left out of the group tables (E: THA 2-0 UZB, UZB 0-3 TPE,
+// TJK 0-4 UZB; 9 goals). They are not stored, so the rows hold 33 + 12 = 45 matches and 211
+// goals, and every group table equals the rows. Group E keeps its place numbers from the full
+// fixture list (E-01, E-04, E-06), so the friendlies could be added later without renumbering.
+// 2026 (oldid 1378820224): 48 matches / 249 goals, as the infobox; every result was also
+// checked against the AFC reports linked from the page (www.the-afc.com), which agree.
+const QUALIFIERS_C: Record<number, { oldid: number; ids: Record<string, string[]>; goals: number; absent: Record<string, string[]> }> = {
+  2024: {
+    oldid: 1362962221,
+    ids: {
+      "R1-A": ["01", "02", "03", "04", "05", "06"],
+      "R1-B": ["01", "02", "03"],
+      "R1-C": ["01", "02", "03"],
+      "R1-D": ["01", "02", "03", "04", "05", "06"],
+      "R1-E": ["01", "04", "06"],
+      "R1-F": ["01", "02", "03", "04", "05", "06"],
+      "R1-G": ["01", "02", "03"],
+      "R1-H": ["01", "02", "03"],
+      "R2-A": ["01", "02", "03", "04", "05", "06"],
+      "R2-B": ["01", "02", "03", "04", "05", "06"],
+    },
+    goals: 211,
+    absent: { "R1-B": ["UAE"], "R1-C": ["IRQ"], "R1-G": ["PAK"] },
+  },
+  2026: {
+    oldid: 1378820224,
+    ids: Object.fromEntries("ABCDEFGH".split("").map((g) => [`R1-${g}`, ["01", "02", "03", "04", "05", "06"]])),
+    goals: 249,
+    absent: {},
+  },
+};
+
+describe("U-20 qualifiers, 2024 and 2026", () => {
+  const qual = (year: number) => ds.matches.filter((m) => m.year === year && m.phase === "qualifying");
+
+  it.each(Object.entries(QUALIFIERS_C))("%s has every group's matches, numbered by group", (year, want) => {
+    const expected = Object.entries(want.ids).flatMap(([key, nn]) => nn.map((n) => `U20-${year}-Q-${key.split("-")[0]}-${key.split("-")[1]}-${n}`));
+    expect(qual(Number(year)).map((m) => m.id).sort()).toEqual(expected.sort());
+  });
+
+  it.each(Object.entries(QUALIFIERS_C))("%s qualifiers have the reconciled goal total and cite their pinned page", (year, want) => {
+    const ms = qual(Number(year));
+    expect(ms.length).toBeGreaterThan(0);
+    expect(ms.reduce((t, m) => t + m.hs + m.as, 0)).toBe(want.goals);
+    for (const m of ms) {
+      expect(m.source, m.id).toBe(`https://en.wikipedia.org/w/index.php?title=${year}_AFC_U-20_Women%27s_Asian_Cup_qualification&oldid=${want.oldid}`);
+    }
+  });
+
+  it("has round names and groups that match the ids", () => {
+    const ms = [2024, 2026].flatMap(qual);
+    expect(ms.length).toBeGreaterThan(0);
+    for (const m of ms) {
+      const [, , , r, g] = m.id.split("-");
+      expect(m.round, m.id).toBe(r === "R1" ? "Round 1" : "Round 2");
+      expect(m.group, m.id).toBe(g);
+    }
+  });
+
+  it("splits 2024 into 33 round-1 matches (167 goals) and 12 round-2 matches (44 goals)", () => {
+    const q = qual(2024);
+    const r = (round: string) => q.filter((m) => m.round === round);
+    expect([r("Round 1").length, r("Round 1").reduce((t, m) => t + m.hs + m.as, 0)]).toEqual([33, 167]);
+    expect([r("Round 2").length, r("Round 2").reduce((t, m) => t + m.hs + m.as, 0)]).toEqual([12, 44]);
+  });
+
+  it("leaves out Uzbekistan's three 2024 friendlies and teams that withdrew", () => {
+    const q = qual(2024);
+    expect(q.length).toBeGreaterThan(0);
+    expect(q.filter((m) => m.home === "UZB" || m.away === "UZB")).toHaveLength(0);
+    for (const [key, teams] of Object.entries(QUALIFIERS_C[2024].absent)) {
+      const [r, g] = key.split("-");
+      for (const t of teams) {
+        expect(q.filter((m) => m.id.includes(`-Q-${r}-${g}-`) && (m.home === t || m.away === t)), `${key} ${t}`).toHaveLength(0);
+      }
+    }
+  });
+
+  it("lists Hong Kong's qualifier matches", () => {
+    const got = ds.matches.filter((m) => m.phase === "qualifying" && (m.year === 2024 || m.year === 2026) && (m.home === "HKG" || m.away === "HKG")).map((m) => m.id).sort();
+    expect(got).toEqual([
+      "U20-2024-Q-R1-A-02", "U20-2024-Q-R1-A-03", "U20-2024-Q-R1-A-05", // oldid 1362962221
+      "U20-2026-Q-R1-B-01", "U20-2026-Q-R1-B-04", "U20-2026-Q-R1-B-05", // oldid 1378820224
+    ]);
+  });
+
+  it("cites the AFC report that was read for every 2026 match", () => {
+    const ms = qual(2026);
+    expect(ms.length).toBeGreaterThan(0);
+    for (const m of ms) expect(m.notes, m.id).toMatch(/AFC report \(read\): https:\/\/www\.the-afc\.com\/en\/national\/afc_u20_womens_asian_cup\.html\/news\//);
+  });
+});
