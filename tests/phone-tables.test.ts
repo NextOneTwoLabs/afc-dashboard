@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { COMP } from "../src/competitions";
 import { edition } from "../src/views/edition";
+import { events } from "../src/views/events";
 import { team } from "../src/views/team";
 import { fmtDate, phaseLabel } from "../src/ui";
 import { isKnockout } from "../src/stats";
@@ -145,5 +146,37 @@ describe("team page: Summary and By edition on phones (#31)", () => {
     const { phone, rest } = phoneBlock();
     expect(rule(phone, "td .yr-comp")).toMatch(/display:\s*block/);
     expect(rule(rest, ".yr-comp")).toMatch(/display:\s*none/);
+  });
+});
+
+describe("All events: Longest unbeaten runs on phones (#50)", () => {
+  const page = events(ds, "U17");
+  const runs = card(page, "Longest unbeaten runs");
+
+  it("8. the table has roles, a rowgroup pair, and a class on every cell", () => {
+    expect(runs).toMatch(/<table class="unbeaten" [^>]*role="table"/);
+    expect(runs).toMatch(/<thead role="rowgroup">/);
+    expect(runs).toMatch(/<tbody role="rowgroup">/);
+    expect(runs.match(/role="columnheader"/g)).toHaveLength(3);
+    expect(runs).not.toMatch(/<tr(?![^>]*role="row")/);
+    const rows = tbodyRows(runs);
+    expect(rows.length).toBeGreaterThan(0);
+    for (const r of rows) {
+      expect(r).not.toMatch(/<td(?![^>]*role="cell")/);
+      for (const c of ["u-team", "u-n", "u-span"]) expect(r, c).toMatch(new RegExp(`class="[^"]*\\b${c}\\b`));
+      expect(r).toMatch(/class="num u-n"[^>]*><strong>/);
+    }
+  });
+
+  it("9. CSS: below 560px the header is visually hidden (not display:none) and rows are grids", () => {
+    const { phone, rest } = phoneBlock();
+    const head = rule(phone, "table.unbeaten thead");
+    expect(head).toMatch(/width:\s*1px/);
+    expect(head).toMatch(/overflow:\s*hidden/);
+    expect(head).toMatch(/clip/);
+    expect(head).not.toMatch(/display:\s*none/);
+    expect(rule(phone, "table.unbeaten tbody tr")).toMatch(/display:\s*grid/);
+    expect(rule(phone, "table.unbeaten td")).toMatch(/display:\s*block/);
+    expect(rule(rest, "table.unbeaten tbody tr")).not.toMatch(/display:\s*grid/); // desktop unchanged
   });
 });
