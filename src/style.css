@@ -218,8 +218,6 @@ table.matches th.c-score { font-weight: 600; }
   table.matches.fit .team { display: inline-flex; align-items: baseline; white-space: normal; }
   table.matches.fit .team .flag { flex: none; }
 }
-  table.matches td.c-date, table.matches td.c-score { white-space: nowrap; }
-}
 .yr-comp { display: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
 tr.total td { border-top: 1px solid var(--border); font-weight: 600; }
