@@ -38,7 +38,8 @@ describe("match tables fit their card above the phone breakpoint (#52)", () => {
     }
   });
   it("keeps date and score on one line", () => {
-    expect(rule(wide(), "table.matches td.c-date, table.matches td.c-score")).toMatch(/white-space:\s*nowrap/);
+    expect(rule(wide(), "table.matches td.c-date")).toMatch(/white-space:\s*nowrap/);
+    expect(rule(wide(), "table.matches td.c-score")).toMatch(/white-space:\s*nowrap/);
   });
   it("does not touch the phone block", () => {
     const phone = css.slice(css.indexOf("@media (max-width: 560px) {"));
