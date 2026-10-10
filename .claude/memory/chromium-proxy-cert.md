@@ -1,0 +1,1 @@
+Lesson: headless Chromium may reject the agent proxy's certificate. Try /root/.ccr/README.md's Chromium steps first; never use --ignore-certificate-errors. If a local forwarder is needed: GET only, allowed hosts only, TLS verified against /root/.ccr/ca-bundle.crt, bound to 127.0.0.1, never committed, stopped after use (Kongming's ruling on #39).

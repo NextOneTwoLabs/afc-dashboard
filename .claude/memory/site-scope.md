@@ -1,0 +1,1 @@
+Site scope (owner, issue #30): all AFC women's youth tournaments, U-17 family (incl. U-16 era) and U-20 family (incl. U-19 era), qualifiers included. Any other AFC women's youth event needs the owner's OK before it's added.
