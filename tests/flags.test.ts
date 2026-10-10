@@ -71,7 +71,7 @@ describe("no CDN", () => {
 });
 
 describe("flag ring (white flags stay visible)", () => {
-  const css = readFileSync(root("src/style.css"), "utf8");
+  const css = readFileSync(root("src/style.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
   const blocks = [...css.matchAll(/([^{}]+)\{([^{}]*--border:[^{}]*)\}/g)].map((m) => ({ sel: m[1].trim(), body: m[2] }));
 
   it(".flag draws its ring with --flag-ring", () => {
