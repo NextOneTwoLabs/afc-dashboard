@@ -207,7 +207,7 @@ td.score { text-align: center; font-weight: 600; }
 td.home { text-align: right; }
 tr.total td { border-top: 1px solid var(--border); font-weight: 600; }
 .team { white-space: nowrap; }
-.flag { font-size: 1.1em; margin-right: 4px; }
+.flag { height: 0.95em; width: auto; aspect-ratio: 4 / 3; vertical-align: -0.1em; margin-right: 5px; border-radius: 2px; box-shadow: 0 0 0 1px var(--border-light); }
 /* Hong Kong, the focus team: the family's gold "followed team" colour (#39). */
 tr.hk td { background: var(--gold-glow); }
 tr.hk td:first-child { box-shadow: inset 3px 0 0 var(--gold); }
