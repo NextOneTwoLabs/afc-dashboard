@@ -69,3 +69,25 @@ describe("no CDN", () => {
     expect(readFileSync(root("src/style.css"), "utf8")).not.toMatch(/url\(\s*["']?(https?:)?\/\//);
   });
 });
+
+describe("flag ring (white flags stay visible)", () => {
+  const css = readFileSync(root("src/style.css"), "utf8");
+  const blocks = [...css.matchAll(/([^{}]+)\{([^{}]*--border:[^{}]*)\}/g)].map((m) => ({ sel: m[1].trim(), body: m[2] }));
+
+  it(".flag draws its ring with --flag-ring", () => {
+    expect(/\.flag\s*\{[^}]*box-shadow:\s*0 0 0 1px var\(--flag-ring\)/.test(css)).toBe(true);
+  });
+
+  it("every theme block that sets --border also sets --flag-ring", () => {
+    expect(blocks.length).toBe(4);
+    for (const b of blocks) expect(b.body, b.sel).toMatch(/--flag-ring:/);
+  });
+
+  it("the ring is dark on light themes and light on dark themes", () => {
+    const light = blocks.filter((b) => /^(:root|\[data-theme="light"\])$/.test(b.sel));
+    const dark = blocks.filter((b) => !light.includes(b));
+    expect(light).toHaveLength(2);
+    for (const b of light) expect(b.body).toMatch(/--flag-ring:\s*rgb\(0 0 0 \/ 0\.22\)/);
+    for (const b of dark) expect(b.body).toMatch(/--flag-ring:\s*rgb\(255 255 255 \/ 0\.22\)/);
+  });
+});
