@@ -121,7 +121,7 @@ describe("U-17 / U-20 on the pages", () => {
     const summary = /<h2>Summary by competition<\/h2>([\s\S]*?)<\/table>/.exec(html)?.[1] ?? "";
     expect(summary).toMatch(/U-17[\s\S]*U-20[\s\S]*Total/);
     expect(html.match(/<h2>Finish by edition/g)).toHaveLength(2); // one chart per competition
-    expect(html).toMatch(/<th>Competition<\/th>/);
+    expect(html).toMatch(/<th class="hide-sm">Competition<\/th>/);
     expect(html).toContain("U-20 2099"); // match tables name the competition
     expect(current(html)).toBe("Both");
     expect(link(html, "U-20")).toBe("#/team/HKG?c=u20");
