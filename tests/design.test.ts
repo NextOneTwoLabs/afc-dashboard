@@ -138,7 +138,7 @@ describe("page markup (nextonetwo family)", () => {
 
   it("shows results as form chips", () => {
     const page = team(ds, "HKG", "JPN");
-    expect(page).toMatch(/<span class="form-chip inline (w|d|l)" title="(Win|Draw|Loss)">[WDL]<\/span>/);
+    expect(page).toMatch(/<span class="form-chip inline (w|d|l)" role="img" aria-label="(Win|Draw|Loss)" title="(Win|Draw|Loss)">[WDL]<\/span>/);
     expect(page).not.toMatch(/class="res /);
   });
 });

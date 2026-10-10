@@ -11,7 +11,7 @@ import { isKnockout } from "../src/stats";
 import { loadDataset } from "./load";
 
 const ds = loadDataset("tests/fixtures", "tests/fixtures-u20");
-const css = readFileSync("src/style.css", "utf8");
+const css = readFileSync("src/style.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 
 const strip = (h: string) => h.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
 const card = (html: string, title: string) => new RegExp(`<h2>${title}[\\s\\S]*?</h2>([\\s\\S]*?)</table>`).exec(html)?.[1] ?? "";
@@ -69,7 +69,9 @@ describe("match lists get a stackable markup (#31)", () => {
   });
 
   it("2b. the source link sits outside .venue-name, so it stays on phones", () => {
-    const withSrc = tbodyRows(allMatches).filter((r) => cell(r, "c-venue")?.includes('aria-label="Source"'));
+    // The demo fixture has no source links; the real data does.
+    const real = card(team(loadDataset("data"), "HKG"), "All matches");
+    const withSrc = tbodyRows(real).filter((r) => cell(r, "c-venue")?.includes('aria-label="Source"'));
     expect(withSrc.length).toBeGreaterThan(0);
     for (const r of withSrc) {
       const v = cell(r, "c-venue")!;
