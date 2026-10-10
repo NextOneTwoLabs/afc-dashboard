@@ -163,8 +163,8 @@ describe("All events: Longest unbeaten runs on phones (#50)", () => {
     expect(rows.length).toBeGreaterThan(0);
     for (const r of rows) {
       expect(r).not.toMatch(/<td(?![^>]*role="cell")/);
-      for (const c of ["u-team", "u-n", "u-span"]) expect(r, c).toContain(`class="${c}`);
-      expect(cell(r, "u-n")).toContain("<strong>");
+      for (const c of ["u-team", "u-n", "u-span"]) expect(r, c).toMatch(new RegExp(`class="[^"]*\\b${c}\\b`));
+      expect(r).toMatch(/class="num u-n"[^>]*><strong>/);
     }
   });
 

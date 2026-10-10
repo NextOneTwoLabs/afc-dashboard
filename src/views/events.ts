@@ -21,8 +21,8 @@ function records(ds: Dataset): string {
   const tbl = (title: string, ms: Match[]) => `<div class="card"><h2>${esc(title)}</h2>${matchTable(ds, ms)}</div>`;
   const runs = unbeatenRuns(ds.matches, activeTeams(ds))
     .map(
-      (r) => `<tr class="${r.team === FOCUS ? "hk" : ""}"><td>${teamLink(ds, r.team)}</td><td class="num"><strong>${r.length}</strong></td>
-        <td class="small">${esc(fmtDate(r.from.date))} – ${r.ongoing ? "latest match" : esc(fmtDate(r.to.date))}</td></tr>`,
+      (r) => `<tr role="row" class="${r.team === FOCUS ? "hk" : ""}"><td role="cell" class="u-team">${teamLink(ds, r.team)}</td><td role="cell" class="num u-n" data-label="Matches"><strong>${r.length}</strong></td>
+        <td role="cell" class="small u-span">${esc(fmtDate(r.from.date))} – ${r.ongoing ? "latest match" : esc(fmtDate(r.to.date))}</td></tr>`,
     )
     .join("");
   return `${head}
@@ -30,7 +30,7 @@ function records(ds: Dataset): string {
     ${tbl("Biggest wins", biggestWins(ds.matches))}
     ${tbl("Biggest wins at the finals", biggestWins(finals, 5))}
     ${tbl("Highest-scoring matches", highestScoring(ds.matches))}
-    <div class="card"><h2>Longest unbeaten runs</h2><div class="table-wrap"><table><thead><tr><th>Team</th><th class="num">Matches</th><th>Span</th></tr></thead><tbody>${runs}</tbody></table></div></div>`;
+    <div class="card"><h2>Longest unbeaten runs</h2><div class="table-wrap"><table class="unbeaten" role="table"><thead role="rowgroup"><tr role="row"><th role="columnheader">Team</th><th role="columnheader" class="num">Matches</th><th role="columnheader">Span</th></tr></thead><tbody role="rowgroup">${runs}</tbody></table></div></div>`;
 }
 
 /** The Events overview (#/events): every edition, medals, goals and all-time records. */

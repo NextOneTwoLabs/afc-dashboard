@@ -328,6 +328,18 @@ select, input[type="search"] { font: inherit; font-size: 14px; padding: 7px 10px
   table.summary td[data-label]::before { content: attr(data-label); display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
   table.summary tr.total td { border-top: 0; }
   table.summary tbody tr:hover { background: var(--row-hover); }
+  /* Longest unbeaten runs: team and count on one line, the span under them (#50). */
+  table.unbeaten thead { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+  table.unbeaten tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "team n" "span span"; align-items: center; column-gap: 10px; row-gap: 2px; padding: 8px 4px; border-bottom: 1px solid var(--border-light); }
+  table.unbeaten tbody tr:last-child { border-bottom: none; }
+  table.unbeaten td { display: block; padding: 0; border: 0; white-space: normal; background: none; }
+  table.unbeaten td.u-team { grid-area: team; }
+  table.unbeaten td.u-n { grid-area: n; text-align: right; }
+  table.unbeaten td.u-n::before { content: attr(data-label) " "; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+  table.unbeaten td.u-span { grid-area: span; color: var(--text-secondary); }
+  table.unbeaten tr.hk { background: var(--gold-glow); box-shadow: inset 3px 0 0 var(--gold); }
+  table.unbeaten tr.hk td { background: none; box-shadow: none; }
+  table.unbeaten tbody tr:hover { background: var(--row-hover); }
   /* By edition: the competition badge sits under the year, so the Competition column can go. */
   td .yr-comp { display: block; margin-top: 2px; }
 }
