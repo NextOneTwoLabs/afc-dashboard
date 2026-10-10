@@ -210,6 +210,12 @@ table.matches td.c-meta { display: none; }
 table.matches .c-home { text-align: right; }
 table.matches .c-score { text-align: center; font-weight: 600; }
 table.matches th.c-score { font-weight: 600; }
+/* Above the phone layout (#52): every cell is nowrap, so a long venue pushed the table past its card.
+   Let the text columns wrap; date and score stay on one line. */
+@media (min-width: 561px) {
+  table.matches td.c-venue, table.matches td.c-stage, table.matches td.c-ed, table.matches .team { white-space: normal; }
+  table.matches td.c-date, table.matches td.c-score { white-space: nowrap; }
+}
 .yr-comp { display: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
 tr.total td { border-top: 1px solid var(--border); font-weight: 600; }
