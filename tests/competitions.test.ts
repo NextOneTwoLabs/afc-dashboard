@@ -120,7 +120,7 @@ describe("competitions in the model (#30, phase 1a)", () => {
   });
 
   it("a team page and summary read one competition, or all of them", () => {
-    expect(byEdition(team(ds, "HKG", undefined, "U20"))).toMatch(/2024<\/a><\/td><td>.*?<\/td><td>0-1-0/);
+    expect(byEdition(team(ds, "HKG", undefined, "U20"))).toMatch(/2024<\/a>.*?<\/td><td class="hide-sm">.*?<\/td><td>0-1-0/);
     expect(team(ds, "HKG", undefined, "U17")).not.toMatch(/2024<\/a>/); // Hong Kong played no U-17 2024 match
     expect(teamSummary(ds, "JPN", "U20")).toMatchObject({ appearances: 2, titles: 1 });
     expect(teamSummary(ds, "JPN", "U17")).toMatchObject({ appearances: 1, titles: 0 });

@@ -36,16 +36,19 @@ const wdl = (r: { p: number; w: number; d: number; l: number; gf: number; ga: nu
 /** One row per competition, plus a total when both are shown (owner-approved mockup, #30). */
 function summary(all: Dataset, code: string, comps: Competition[]): string {
   const row = (label: string, s: TeamSummary, editions: number | undefined, strong = false) => {
-    const td = (x: string, cls = "") => `<td${cls ? ` class="${cls}"` : ""}>${strong ? `<strong>${x}</strong>` : x}</td>`;
-    return `<tr${strong ? ' class="total"' : ""}>${td(label)}${td(String(s.titles), "num")}${td(
+    // data-label is the phone layout's visible label above each value (#31); the real headers stay in the thead.
+    const td = (x: string, cls = "", lbl = "") => `<td role="cell"${cls ? ` class="${cls}"` : ""}${lbl ? ` data-label="${lbl}"` : ""}>${strong ? `<strong>${x}</strong>` : x}</td>`;
+    return `<tr role="row"${strong ? ' class="total"' : ""}>${td(label, "s-comp")}${td(String(s.titles), "num", "Titles")}${td(
       `${s.appearances}${editions === undefined ? "" : ` <span class="muted small">of ${editions}</span>`}`,
       "num",
-    )}${td(s.best ?? "—")}${td(wdl(s.finals))}${td(wdl(s.qualifying))}</tr>`;
+      "Finals apps",
+    )}${td(s.best ?? "—", "", "Best finish")}${td(wdl(s.finals), "", "Finals")}${td(wdl(s.qualifying), "", "Qualifiers")}</tr>`;
   };
   const held = (c: Competition) => all.editions.filter((e) => e.competition === c && e.status === "completed").length;
   const rows = comps.map((c) => row(compBadge(c), teamSummary(all, code, c), held(c)));
   if (comps.length > 1) rows.push(row("Total", teamSummary(forCompetitions(all, comps), code), undefined, true));
-  return `<div class="table-wrap"><table><thead><tr><th></th><th class="num">Titles</th><th class="num">Finals apps</th><th>Best finish</th><th><span class="hide-sm">Finals W-D-L</span><span class="hide-lg">Finals</span></th><th><span class="hide-sm">Qualifiers W-D-L</span><span class="hide-lg">Qual.</span></th></tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
+  const h = (inner: string, cls = "") => `<th role="columnheader"${cls ? ` class="${cls}"` : ""}>${inner}</th>`;
+  return `<div class="table-wrap"><table class="summary" role="table"><thead role="rowgroup"><tr role="row">${h("")}${h("Titles", "num")}${h("Finals apps", "num")}${h("Best finish")}${h(`<span class="hide-sm">Finals W-D-L</span><span class="hide-lg">Finals</span>`)}${h(`<span class="hide-sm">Qualifiers W-D-L</span><span class="hide-lg">Qual.</span>`)}</tr></thead><tbody role="rowgroup">${rows.join("")}</tbody></table></div>`;
 }
 
 /** The dataset restricted to some competitions. */
@@ -102,7 +105,7 @@ export function team(all: Dataset, codeParam?: string, oppParam?: string, filter
       const f = record(ym.filter((m) => m.phase === "final"), code);
       const fin = e.status === "scheduled" ? "In progress" : e.status === "cancelled" ? "Cancelled" : finish(ds, e, code);
       if (!ym.length && (!fin || fin === "Did not enter")) return "";
-      return `<tr><td><a href="${eventHref(e.competition, e.year)}">${e.year}</a></td><td>${compBadge(e.competition)}</td><td>${wdl(q)}</td><td>${wdl(f)}</td><td>${esc(fin ?? "")}</td></tr>`;
+      return `<tr><td><a href="${eventHref(e.competition, e.year)}">${e.year}</a> <span class="yr-comp">${compBadge(e.competition)}</span></td><td class="hide-sm">${compBadge(e.competition)}</td><td>${wdl(q)}</td><td>${wdl(f)}</td><td>${esc(fin ?? "")}</td></tr>`;
     })
     .join("");
 
@@ -119,7 +122,7 @@ export function team(all: Dataset, codeParam?: string, oppParam?: string, filter
     <div class="grid cols-2">${charts}</div>
     <div class="card"><h2>By edition</h2>${
       byYear
-        ? `<div class="table-wrap"><table><thead><tr><th>Year</th><th>Competition</th><th><span class="hide-sm">Qualifiers W-D-L</span><span class="hide-lg">Qual.</span></th><th><span class="hide-sm">Finals W-D-L</span><span class="hide-lg">Finals</span></th><th>Finish</th></tr></thead><tbody>${byYear}</tbody></table></div>`
+        ? `<div class="table-wrap"><table><thead><tr><th>Year</th><th class="hide-sm">Competition</th><th><span class="hide-sm">Qualifiers W-D-L</span><span class="hide-lg">Qual.</span></th><th><span class="hide-sm">Finals W-D-L</span><span class="hide-lg">Finals</span></th><th>Finish</th></tr></thead><tbody>${byYear}</tbody></table></div>`
         : `<div class="empty">No results yet.</div>`
     }</div>
     <div class="grid cols-2">${winsCard}</div>

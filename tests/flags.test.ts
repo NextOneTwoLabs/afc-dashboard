@@ -36,7 +36,7 @@ describe("rendering", () => {
 
   it("Hong Kong keeps its gold highlight class", () => {
     expect(page).toMatch(/<a class="team hk" href="#\/team\/HKG"><img class="flag" src="[^"]*flags\/hk\.svg"/);
-    expect(events(ds, "U17")).toMatch(/<tr class="hk">/);
+    expect(events(ds, "U17")).toMatch(/<tr class="hk" role="row">/);
   });
 
   it("the page head shows the flag image for the team", () => {

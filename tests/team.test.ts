@@ -47,7 +47,7 @@ const byEdition = (html: string) => /<h2>By edition<\/h2>([\s\S]*?)<\/table>/.ex
 const rowText = (rows: string, year: string) =>
   [...rows.matchAll(/<tr>([\s\S]*?)<\/tr>/g)]
     .map((r) => [...r[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((c) => c[1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim()).join(" | "))
-    .find((t) => t.startsWith(`${year} |`)) ?? "";
+    .find((t) => t.startsWith(`${year} U-`)) ?? "";
 const podium = (html: string) => /<div class="podium">([\s\S]*?)<\/div><\/div>/.exec(html)?.[1] ?? "";
 
 describe("team pages (#18)", () => {
@@ -72,9 +72,9 @@ describe("team pages (#18)", () => {
 
   it("4. By edition lists a scheduled or cancelled edition the team has played in", () => {
     const rows = byEdition(team(ds, "KOR"));
-    // Cell texts, so the check holds with or without the Competition column (#30).
-    expect(rowText(rows, "2092")).toMatch(/^2092 \| (U-17 \| )?1-0-0 .*\| In progress$/);
-    expect(rowText(rows, "2093")).toMatch(/^2093 \| (U-17 \| )?0-1-0 .*\| Cancelled$/);
+    // Cell texts. #31: the Year cell now also holds the phone-only competition badge ("2092 U-17").
+    expect(rowText(rows, "2092")).toMatch(/^2092 U-17 \| U-17 \| 1-0-0 .*\| In progress$/);
+    expect(rowText(rows, "2093")).toMatch(/^2093 U-17 \| U-17 \| 0-1-0 .*\| Cancelled$/);
   });
 
   it("5. an edition with no third-place match shows its two semi-final losers as joint semi-finalists", () => {

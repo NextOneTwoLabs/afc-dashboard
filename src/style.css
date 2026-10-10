@@ -205,12 +205,20 @@ tbody tr:last-child td { border-bottom: none; }
 td.num, th.num { text-align: center; }
 td.score { text-align: center; font-weight: 600; }
 td.home { text-align: right; }
+/* Match lists (#31): the phone meta line is hidden on desktop. The Home header right-aligns with its column. */
+table.matches td.c-meta { display: none; }
+table.matches .c-home { text-align: right; }
+table.matches .c-score { text-align: center; font-weight: 600; }
+table.matches th.c-score { font-weight: 600; }
+.yr-comp { display: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
 tr.total td { border-top: 1px solid var(--border); font-weight: 600; }
 .team { white-space: nowrap; }
 .flag { height: 0.95em; width: auto; aspect-ratio: 4 / 3; vertical-align: -0.1em; margin-right: 5px; border-radius: 2px; box-shadow: 0 0 0 1px var(--flag-ring); }
 /* Hong Kong, the focus team: the family's gold "followed team" colour (#39). */
 tr.hk td { background: var(--gold-glow); }
 tr.hk td:first-child { box-shadow: inset 3px 0 0 var(--gold); }
+table.matches tr.hk td.c-date { box-shadow: inset 3px 0 0 var(--gold); } /* c-meta is first in the DOM, but hidden on desktop */
 .team.hk { font-weight: 700; }
 
 /* W / D / L: the family's form chips (W accent, D slate, L danger). */
@@ -286,4 +294,40 @@ select, input[type="search"] { font: inherit; font-size: 14px; padding: 7px 10px
   .hide-lg { display: revert; }
   td .team { white-space: normal; }
   th, td { padding: 8px 4px; }
+  /* Match lists stack each match on two lines: date · edition · stage + source, then the teams (#31). */
+  table.matches thead { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; } /* visually hidden, still the columns' headers */
+  table.matches thead th.c-ed, table.matches thead th.c-stage { display: none; }
+  table.matches tbody tr {
+    display: grid; align-items: center; column-gap: 8px; row-gap: 2px; padding: 8px 4px;
+    grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-areas: "meta meta meta src" "res home score away";
+    border-bottom: 1px solid var(--border-light);
+  }
+  table.matches.no-res tbody tr { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "meta meta src" "home score away"; }
+  table.matches tbody tr:last-child { border-bottom: none; }
+  table.matches td { display: block; padding: 0; border: 0; white-space: normal; background: none; }
+  table.matches td.c-date, table.matches td.c-ed, table.matches td.c-stage { display: none; }
+  table.matches td.c-meta { display: block; grid-area: meta; font-size: 12px; color: var(--text-secondary); }
+  table.matches td.c-venue { display: block; grid-area: src; text-align: right; }
+  table.matches td.c-venue .venue-name { display: none; }
+  table.matches td.c-res { grid-area: res; }
+  table.matches td.c-home { grid-area: home; text-align: right; }
+  table.matches td.c-score { grid-area: score; text-align: center; white-space: nowrap; }
+  table.matches td.c-away { grid-area: away; }
+  table.matches tr.hk { background: var(--gold-glow); box-shadow: inset 3px 0 0 var(--gold); }
+  table.matches tr.hk td { background: none; box-shadow: none; }
+  table.matches tbody tr:hover { background: var(--row-hover); }
+  table.matches tbody tr:hover td { background: none; }
+  /* Summary by competition: one labelled block per competition (#31). */
+  table.summary thead { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+  table.summary tbody tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 10px; padding: 10px 2px; border-bottom: 1px solid var(--border-light); }
+  table.summary tbody tr:last-child { border-bottom: none; }
+  table.summary tbody tr.total { border-top: 1px solid var(--border); }
+  table.summary td { display: block; padding: 0; border: 0; white-space: normal; text-align: left; background: none; }
+  table.summary td.s-comp { grid-column: 1 / -1; }
+  table.summary td[data-label]::before { content: attr(data-label); display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+  table.summary tr.total td { border-top: 0; }
+  table.summary tbody tr:hover { background: var(--row-hover); }
+  /* By edition: the competition badge sits under the year, so the Competition column can go. */
+  td .yr-comp { display: block; margin-top: 2px; }
 }
