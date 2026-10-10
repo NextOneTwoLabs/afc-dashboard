@@ -210,10 +210,14 @@ table.matches td.c-meta { display: none; }
 table.matches .c-home { text-align: right; }
 table.matches .c-score { text-align: center; font-weight: 600; }
 table.matches th.c-score { font-weight: 600; }
-/* Above the phone layout (#52): every cell is nowrap, so a long venue pushed the table past its card.
-   Let the text columns wrap; date and score stay on one line. */
+/* All events record tables (#52): every cell is nowrap, so a long venue pushed the table past its card.
+   Only those full-width tables (table.fit) opt in; the half-width group lists and team pages stay as they were.
+   Venue, stage and edition wrap; a team name wraps beside its flag (flex), never under it. */
 @media (min-width: 561px) {
-  table.matches td.c-venue, table.matches td.c-stage, table.matches td.c-ed, table.matches .team { white-space: normal; }
+  table.matches.fit td.c-venue, table.matches.fit td.c-stage, table.matches.fit td.c-ed { white-space: normal; }
+  table.matches.fit .team { display: inline-flex; align-items: baseline; white-space: normal; }
+  table.matches.fit .team .flag { flex: none; }
+}
   table.matches td.c-date, table.matches td.c-score { white-space: nowrap; }
 }
 .yr-comp { display: none; }

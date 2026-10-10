@@ -58,9 +58,9 @@ export const phaseLabel = (p: Match["phase"]) => (p === "final" ? "Finals" : "Qu
  * becomes two lines: a meta line (date · edition · stage, then the source link), then the teams.
  * The explicit ARIA roles keep the table semantics when the rows turn into grids.
  */
-export function matchTable(ds: Dataset, matches: Match[], opts: { perspective?: string; showEdition?: boolean; showCompetition?: boolean } = {}): string {
+export function matchTable(ds: Dataset, matches: Match[], opts: { perspective?: string; showEdition?: boolean; showCompetition?: boolean; fit?: boolean } = {}): string {
   if (!matches.length) return `<div class="empty">No matches.</div>`;
-  const { perspective, showEdition = true, showCompetition = false } = opts;
+  const { perspective, showEdition = true, showCompetition = false, fit = false } = opts;
   const rows = matches
     .map((m) => {
       // Highlighting every row on the focus team's own pages would say nothing.
@@ -83,7 +83,7 @@ export function matchTable(ds: Dataset, matches: Match[], opts: { perspective?: 
     })
     .join("");
   const th = (cls: string, label: string) => `<th class="${cls}" role="columnheader">${label}</th>`;
-  return `<div class="table-wrap"><table class="matches${perspective ? "" : " no-res"}" role="table">
+  return `<div class="table-wrap"><table class="matches${perspective ? "" : " no-res"}${fit ? " fit" : ""}" role="table">
     <thead role="rowgroup"><tr role="row">${th("c-date", "Date")}${showEdition ? th("c-ed", "Edition") : ""}${th("c-stage", "Stage")}${perspective ? th("c-res", `<span class="sr-only">Result</span>`) : ""}${th("c-home", "Home")}${th("c-score", "Score")}${th("c-away", "Away")}${th("c-venue", "Venue")}</tr></thead>
     <tbody role="rowgroup">${rows}</tbody></table></div>`;
 }
