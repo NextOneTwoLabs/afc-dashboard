@@ -18,7 +18,7 @@ function records(ds: Dataset): string {
   const head = `<h2 id="records" style="margin-top:28px;font-size:20px">All-time records</h2>`;
   if (!ds.matches.length) return head + emptyData();
   const finals = ds.matches.filter((m) => m.phase === "final");
-  const tbl = (title: string, ms: Match[]) => `<div class="card"><h2>${esc(title)}</h2>${matchTable(ds, ms)}</div>`;
+  const tbl = (title: string, ms: Match[]) => `<div class="card"><h2>${esc(title)}</h2>${matchTable(ds, ms, { fit: true })}</div>`;
   const runs = unbeatenRuns(ds.matches, activeTeams(ds))
     .map(
       (r) => `<tr role="row" class="${r.team === FOCUS ? "hk" : ""}"><td role="cell" class="u-team">${teamLink(ds, r.team)}</td><td role="cell" class="num u-n" data-label="Matches"><strong>${r.length}</strong></td>
