@@ -13,7 +13,7 @@ const RI = /[\u{1F1E6}-\u{1F1FF}]/u;
 const ds = loadDataset("data");
 /** ISO alpha-2 from the emoji's two regional-indicator letters. */
 const iso2 = (emoji: string) => [...emoji].map((c) => String.fromCharCode(c.codePointAt(0)! - 0x1f1e6 + 97)).join("");
-const csvFlags = [...ds.teams.values()].map((t) => ({ code: t.code, iso: iso2(t.flag) }));
+const csvFlags = [...ds.teams.values()].filter((t) => t.flag).map((t) => ({ code: t.code, iso: iso2(t.flag) }));
 
 describe("flag files", () => {
   it.each(csvFlags)("$code ($iso) has a local flag file", ({ iso }) => {
@@ -58,6 +58,23 @@ describe("rendering", () => {
   ];
   it.each(views)("%s has no regional-indicator emoji", (_n, html) => {
     expect(html).not.toMatch(RI);
+  });
+});
+
+describe("Chinese Taipei has no flag (owner decision, #46)", () => {
+  it("TPE is in the data with an empty flag and no flag file", () => {
+    expect(ds.teams.get("TPE")?.name).toBe("Chinese Taipei");
+    expect(ds.teams.get("TPE")?.flag).toBe("");
+    expect(existsSync(root("public/flags/tw.svg"))).toBe(false);
+  });
+  it("TPE renders as its name alone in the page head, links and options", () => {
+    const page = team(ds, "TPE");
+    expect(page).toMatch(/<h1>Chinese Taipei<\/h1>/);
+    expect(team(ds, "JPN", "TPE")).toContain('<a class="team" href="#/team/TPE">Chinese Taipei</a>');
+    expect(page).not.toMatch(RI);
+    expect(page).not.toMatch(/<img class="flag"[^>]*>\u2060?Chinese Taipei/);
+    expect(page).not.toMatch(/tw\.svg/);
+    expect(events(ds, "U17") + events(ds, "U20")).not.toMatch(/<img class="flag"[^>]*>\u2060?Chinese Taipei/);
   });
 });
 
