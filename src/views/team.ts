@@ -2,7 +2,7 @@ import { ordinalChart } from "../charts";
 import { COMP, eventHref } from "../competitions";
 import { COMPETITIONS, forCompetition, sameEdition, type Competition, type Dataset } from "../model";
 import { FINISHES, activeTeams, biggestWins, finish, involves, outcome, record, teamSummary, unbeatenRuns, type TeamSummary } from "../stats";
-import { FOCUS, compBadge, esc, fmtDate, matchTable, pageHead, segmented, teamLink, teamName } from "../ui";
+import { FOCUS, compBadge, esc, flagImg, fmtDate, matchTable, pageHead, segmented, teamLink, teamName } from "../ui";
 
 export function teamSelect(ds: Dataset, current: string, id: string, label: string, opts: { blank?: boolean; exclude?: string } = {}): string {
   const active = activeTeams(ds).length ? activeTeams(ds) : [...ds.teams.keys()];
@@ -12,7 +12,7 @@ export function teamSelect(ds: Dataset, current: string, id: string, label: stri
     .filter((c) => c !== opts.exclude)
     .sort((a, b) => teamName(ds, a).localeCompare(teamName(ds, b)));
   return `<label>${esc(label)}<select id="${id}">${opts.blank ? `<option value="" ${current ? "" : "selected"}>—</option>` : ""}${codes
-    .map((c) => `<option value="${esc(c)}" ${c === current ? "selected" : ""}>${esc(ds.teams.get(c)?.flag ?? "")} ${esc(teamName(ds, c))}</option>`)
+    .map((c) => `<option value="${esc(c)}" ${c === current ? "selected" : ""}>${esc(teamName(ds, c))}</option>`)
     .join("")}</select></label>`;
 }
 
@@ -112,7 +112,7 @@ export function team(all: Dataset, codeParam?: string, oppParam?: string, filter
   }</div>`;
 
   const scope = both ? "across both competitions, U-17 and U-20" : `in the ${COMP[comps[0] ?? "U17"].label} competition`;
-  return `${pageHead([["Teams"], [t.name]], `<span class="flag">${esc(t.flag)}</span>${esc(t.name)}`, `Record, finishes and results ${scope}.${t.formerNames.length ? ` Also listed as ${esc(t.formerNames.join(", "))}.` : ""}`)}
+  return `${pageHead([["Teams"], [t.name]], `${flagImg(t.flag)}${esc(t.name)}`, `Record, finishes and results ${scope}.${t.formerNames.length ? ` Also listed as ${esc(t.formerNames.join(", "))}.` : ""}`)}
     <div class="filters">${teamSelect(all, code, "team-pick", "Team")}${teamSelect(all, opp ?? "", "compare-pick", "Compare with…", { blank: true, exclude: code })}${filterNav}</div>
     ${summaryCard}
     ${opp ? comparison(ds, code, opp) : ""}

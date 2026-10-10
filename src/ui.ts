@@ -10,11 +10,20 @@ export const esc = (s: unknown) =>
 
 export const teamName = (ds: Dataset, code: string) => ds.teams.get(code)?.name ?? code;
 
-// A word joiner (U+2060) keeps the flag on the same line as the name when a long name wraps.
+/** ISO 3166 alpha-2 (lower case) from a flag emoji's two regional-indicator letters. */
+export const flagIso2 = (emoji: string) => [...emoji].map((c) => String.fromCharCode(c.codePointAt(0)! - 0x1f1e6 + 97)).join("");
+
+/** A decorative flag image (#46) plus a word joiner, from the local public/flags/ SVGs; empty for a team with no flag (Chinese Taipei). */
+export function flagImg(emoji: string | undefined): string {
+  if (!emoji) return "";
+  // The word joiner keeps the flag on the same line as the name when a long name wraps.
+  return `<img class="flag" src="${import.meta.env.BASE_URL}flags/${flagIso2(emoji)}.svg" alt="" aria-hidden="true" width="16" height="12">\u2060`;
+}
+
 export function teamLink(ds: Dataset, code: string | undefined): string {
   if (!code) return `<span class="muted">—</span>`;
   const t = ds.teams.get(code);
-  return `<a class="team${code === FOCUS ? " hk" : ""}" href="#/team/${esc(code)}"><span class="flag" aria-hidden="true">${esc(t?.flag ?? "")}</span>\u2060${esc(t?.name ?? code)}</a>`;
+  return `<a class="team${code === FOCUS ? " hk" : ""}" href="#/team/${esc(code)}">${flagImg(t?.flag)}${esc(t?.name ?? code)}</a>`;
 }
 
 /** A result as the family's form chip (#39): W accent, D slate, L danger. */
