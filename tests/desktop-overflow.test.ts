@@ -3,6 +3,10 @@
 // The real no-sideways-scroll check is done in a headless browser at 1280/1024/768 (see the PR);
 // these pin the CSS rules that let a match list shrink to its card above the phone breakpoint.
 import { readFileSync } from "node:fs";
+import { events } from "../src/views/events";
+import { edition } from "../src/views/edition";
+import { team } from "../src/views/team";
+import { loadDataset } from "./load";
 import { describe, expect, it } from "vitest";
 
 const css = readFileSync("src/style.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
@@ -27,22 +31,26 @@ function rule(sheet: string, selector: string): string {
   return "";
 }
 
-describe("match tables fit their card above the phone breakpoint (#52)", () => {
-  const wide = () => wideBlock();
-  it("lets the venue cell wrap", () => {
-    expect(rule(wide(), "table.matches td.c-venue")).toMatch(/white-space:\s*normal/);
-  });
-  it("lets the stage, edition and team cells wrap, so 768px fits too", () => {
-    for (const sel of ["table.matches td.c-stage", "table.matches td.c-ed", "table.matches .team"]) {
-      expect(rule(wide(), sel), sel).toMatch(/white-space:\s*normal/);
+describe("All events record tables fit their card above the phone breakpoint (#52)", () => {
+  it("lets venue, stage and edition wrap in table.fit only", () => {
+    for (const sel of ["table.matches.fit td.c-venue", "table.matches.fit td.c-stage", "table.matches.fit td.c-ed"]) {
+      expect(rule(wideBlock(), sel), sel).toMatch(/white-space:\s*normal/);
     }
   });
-  it("keeps date and score on one line", () => {
-    expect(rule(wide(), "table.matches td.c-date")).toMatch(/white-space:\s*nowrap/);
-    expect(rule(wide(), "table.matches td.c-score")).toMatch(/white-space:\s*nowrap/);
+  it("wraps a team name beside its flag (flex), so the flag never drops to its own line", () => {
+    const r = rule(wideBlock(), "table.matches.fit .team");
+    expect(r).toMatch(/display:\s*inline-flex/);
+    expect(rule(wideBlock(), "table.matches.fit .team .flag")).toMatch(/flex:\s*none/);
   });
-  it("does not touch the phone block", () => {
-    const phone = css.slice(css.indexOf("@media (max-width: 560px) {"));
-    expect(phone).not.toMatch(/min-width:\s*561px/);
+  it("never applies wrapping to plain match tables (group lists, team pages)", () => {
+    for (const m of wideBlock().matchAll(/([^{}]+)\{/g)) {
+      for (const sel of m[1].split(",")) expect(sel.trim(), "selector must be scoped to .fit").toMatch(/\.fit\b/);
+    }
+  });
+  it("marks only the All events record tables as fit", () => {
+    const ds = loadDataset("tests/fixtures", "tests/fixtures-u20");
+    expect(events(ds, "U17")).toMatch(/<table class="matches no-res fit"/);
+    expect(edition(ds, "2099", "U20")).not.toMatch(/class="matches[^"]*\bfit\b/);
+    expect(team(ds, "HKG")).not.toMatch(/class="matches[^"]*\bfit\b/);
   });
 });
