@@ -213,13 +213,13 @@ describe("2027 qualifiers, matchday 2", () => {
     expect(m!.source, id).toMatch(/^https:\/\/www\.the-afc\.com\/en\/national\/afc_u17_womens_asian_cup\.html\/news\/qualifiers-group-/);
   });
 
-  it("has matchday 1 plus all 13 matchday 2 matches", () => {
-    expect(q).toHaveLength(13 + 13);
+  it("has all 13 matchday 2 matches, and matchday 1's 13 before them", () => {
+    expect(q.filter((m) => m.date <= "2026-10-08")).toHaveLength(13 + 13);
     expect(q.filter((m) => m.date === "2026-10-08")).toHaveLength(13);
   });
 
   it("has Hong Kong's 9-0 win over Guam in group G, 8 October", () => {
-    expect(q.filter((m) => m.home === "HKG" || m.away === "HKG").map((m) => m.id)).toEqual(["2027-Q-R1-G-02"]);
+    expect(q.filter((m) => (m.home === "HKG" || m.away === "HKG") && m.date <= "2026-10-08").map((m) => m.id)).toEqual(["2027-Q-R1-G-02"]);
   });
 });
 
