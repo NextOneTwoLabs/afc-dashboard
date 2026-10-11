@@ -225,8 +225,8 @@ describe("2027 qualifiers, matchday 2", () => {
 
 // 2027 qualifiers, matchday 3 (11 Oct 2026; issue #9). Ids number each group's full fixture
 // list. These 12 results are from AFC reports on www.the-afc.com and agree with Wikipedia
-// (oldid 1379725798). Group A's TJK v UAE (2027-Q-R1-A-06) was still unfinished when this was
-// written, so it is not here yet; Group A is not final until it is added.
+// (oldid 1379725798). Group A's TJK v UAE (2027-Q-R1-A-06) was unfinished then; it is added
+// below (final, TJK 5–0 UAE), which makes every group final.
 const MD3_2027: Record<string, [string, string, number, number]> = {
   "2027-Q-R1-A-05": ["KOR", "JOR", 9, 0],
   "2027-Q-R1-B-05": ["KSA", "BHR", 2, 1],
@@ -242,11 +242,11 @@ const MD3_2027: Record<string, [string, string, number, number]> = {
   "2027-Q-R1-H-03": ["PHI", "BAN", 3, 0],
 };
 
-// Group tables as printed on Wikipedia (oldid 1379725798): team -> [W, D, L, GF, GA]. Group A
-// is the table without TJK v UAE. Order is the finishing order; the first team of a final
-// group is its winner and qualifies (only group winners advance).
+// Group tables as printed on Wikipedia (oldid 1379734679, all groups complete): team ->
+// [W, D, L, GF, GA]. Order is the finishing order; the first team of a final group is its
+// winner and qualifies (only group winners advance).
 const TABLES_2027: Record<string, Record<string, number[]>> = {
-  A: { KOR: [3, 0, 0, 31, 0], JOR: [1, 1, 1, 7, 10], TJK: [0, 1, 1, 1, 7], UAE: [0, 0, 2, 0, 22] },
+  A: { KOR: [3, 0, 0, 31, 0], TJK: [1, 1, 1, 6, 7], JOR: [1, 1, 1, 7, 10], UAE: [0, 0, 3, 0, 27] },
   B: { IDN: [3, 0, 0, 10, 1], SIN: [2, 0, 1, 5, 5], KSA: [1, 0, 2, 3, 5], BHR: [0, 0, 3, 1, 8] },
   C: { TPE: [2, 0, 0, 18, 0], LAO: [1, 0, 1, 3, 7], CAM: [0, 0, 2, 1, 15] },
   D: { VIE: [3, 0, 0, 28, 0], KGZ: [2, 0, 1, 20, 3], PLE: [1, 0, 2, 9, 8], MNP: [0, 0, 3, 0, 46] },
@@ -255,8 +255,8 @@ const TABLES_2027: Record<string, Record<string, number[]>> = {
   G: { MYA: [2, 0, 0, 11, 1], HKG: [1, 0, 1, 10, 2], GUM: [0, 0, 2, 0, 18] },
   H: { PHI: [2, 0, 0, 7, 0], BAN: [1, 0, 1, 2, 4], UZB: [0, 0, 2, 1, 6] },
 };
-const FINAL_GROUPS_2027 = ["B", "C", "D", "E", "F", "G", "H"];
-const WINNERS_2027: Record<string, string> = { B: "IDN", C: "TPE", D: "VIE", E: "IND", F: "THA", G: "MYA", H: "PHI" };
+const FINAL_GROUPS_2027 = ["A", "B", "C", "D", "E", "F", "G", "H"];
+const WINNERS_2027: Record<string, string> = { A: "KOR", B: "IDN", C: "TPE", D: "VIE", E: "IND", F: "THA", G: "MYA", H: "PHI" };
 
 describe("2027 qualifiers, matchday 3", () => {
   const q = loadU17("data").matches.filter((m) => m.year === 2027 && m.phase === "qualifying");
@@ -268,13 +268,22 @@ describe("2027 qualifiers, matchday 3", () => {
     expect(m!.source, id).toMatch(/^https:\/\/www\.the-afc\.com\/en\/national\/afc_u17_womens_asian_cup\.html\/news\/qualifiers-group-/);
   });
 
-  it("has matchday 1 and 2 plus the 12 final matchday 3 matches", () => {
-    expect(q).toHaveLength(26 + 12);
-    expect(q.filter((m) => m.date === "2026-10-11")).toHaveLength(12);
+  it("has matchday 1 and 2 plus all 13 matchday 3 matches", () => {
+    expect(q).toHaveLength(26 + 13);
+    expect(q.filter((m) => m.date === "2026-10-11")).toHaveLength(13);
   });
 
-  it("leaves unfinished TJK v UAE out", () => {
-    expect(q.find((m) => m.id === "2027-Q-R1-A-06")).toBeUndefined();
+  it("has TJK 5–0 UAE (2027-Q-R1-A-06), from the AFC report", () => {
+    const m = q.find((x) => x.id === "2027-Q-R1-A-06");
+    expect(m).toMatchObject({ home: "TJK", away: "UAE", hs: 5, as: 0, date: "2026-10-11", round: "Round 1", group: "A", venue: "TALCO Arena, Tursonzoda" });
+    expect(m!.source).toMatch(/^https:\/\/www\.the-afc\.com\/en\/national\/afc_u17_womens_asian_cup\.html\/news\/qualifiers-group-a-/);
+    expect(m!.notes).toMatch(/oldid 1379734679/);
+  });
+
+  it("lists exactly the 8 group winners in the 2027 editions note", () => {
+    const ed = loadU17("data").editions.find((e) => e.year === 2027);
+    const listed = /qualified: ([A-Z, ]+)\b/.exec(ed?.notes ?? "")?.[1].split(", ").sort();
+    expect(listed, ed?.notes).toEqual(Object.values(WINNERS_2027).sort());
   });
 
   it("reconciles every group table with Wikipedia", () => {
