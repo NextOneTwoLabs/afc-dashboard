@@ -222,3 +222,87 @@ describe("2027 qualifiers, matchday 2", () => {
     expect(q.filter((m) => m.home === "HKG" || m.away === "HKG").map((m) => m.id)).toEqual(["2027-Q-R1-G-02"]);
   });
 });
+
+// 2027 qualifiers, matchday 3 (11 Oct 2026; issue #9). Ids number each group's full fixture
+// list. These 12 results are from AFC reports on www.the-afc.com and agree with Wikipedia
+// (oldid 1379725798). Group A's TJK v UAE (2027-Q-R1-A-06) was still unfinished when this was
+// written, so it is not here yet; Group A is not final until it is added.
+const MD3_2027: Record<string, [string, string, number, number]> = {
+  "2027-Q-R1-A-05": ["KOR", "JOR", 9, 0],
+  "2027-Q-R1-B-05": ["KSA", "BHR", 2, 1],
+  "2027-Q-R1-B-06": ["IDN", "SIN", 5, 0],
+  "2027-Q-R1-C-03": ["TPE", "LAO", 6, 0],
+  "2027-Q-R1-D-05": ["MNP", "PLE", 0, 8],
+  "2027-Q-R1-D-06": ["VIE", "KGZ", 2, 0],
+  "2027-Q-R1-E-05": ["SYR", "IRQ", 1, 0],
+  "2027-Q-R1-E-06": ["IND", "MAS", 4, 0],
+  "2027-Q-R1-F-05": ["MAC", "BHU", 0, 3],
+  "2027-Q-R1-F-06": ["THA", "LBN", 5, 0],
+  "2027-Q-R1-G-03": ["MYA", "HKG", 2, 1],
+  "2027-Q-R1-H-03": ["PHI", "BAN", 3, 0],
+};
+
+// Group tables as printed on Wikipedia (oldid 1379725798): team -> [W, D, L, GF, GA]. Group A
+// is the table without TJK v UAE. Order is the finishing order; the first team of a final
+// group is its winner and qualifies (only group winners advance).
+const TABLES_2027: Record<string, Record<string, number[]>> = {
+  A: { KOR: [3, 0, 0, 31, 0], JOR: [1, 1, 1, 7, 10], TJK: [0, 1, 1, 1, 7], UAE: [0, 0, 2, 0, 22] },
+  B: { IDN: [3, 0, 0, 10, 1], SIN: [2, 0, 1, 5, 5], KSA: [1, 0, 2, 3, 5], BHR: [0, 0, 3, 1, 8] },
+  C: { TPE: [2, 0, 0, 18, 0], LAO: [1, 0, 1, 3, 7], CAM: [0, 0, 2, 1, 15] },
+  D: { VIE: [3, 0, 0, 28, 0], KGZ: [2, 0, 1, 20, 3], PLE: [1, 0, 2, 9, 8], MNP: [0, 0, 3, 0, 46] },
+  E: { IND: [3, 0, 0, 20, 0], MAS: [2, 0, 1, 5, 4], SYR: [1, 0, 2, 1, 3], IRQ: [0, 0, 3, 0, 19] },
+  F: { THA: [3, 0, 0, 18, 0], LBN: [2, 0, 1, 11, 5], BHU: [1, 0, 2, 3, 9], MAC: [0, 0, 3, 0, 18] },
+  G: { MYA: [2, 0, 0, 11, 1], HKG: [1, 0, 1, 10, 2], GUM: [0, 0, 2, 0, 18] },
+  H: { PHI: [2, 0, 0, 7, 0], BAN: [1, 0, 1, 2, 4], UZB: [0, 0, 2, 1, 6] },
+};
+const FINAL_GROUPS_2027 = ["B", "C", "D", "E", "F", "G", "H"];
+const WINNERS_2027: Record<string, string> = { B: "IDN", C: "TPE", D: "VIE", E: "IND", F: "THA", G: "MYA", H: "PHI" };
+
+describe("2027 qualifiers, matchday 3", () => {
+  const q = loadU17("data").matches.filter((m) => m.year === 2027 && m.phase === "qualifying");
+
+  it.each(Object.entries(MD3_2027))("has %s", (id, [home, away, hs, as]) => {
+    const m = q.find((x) => x.id === id);
+    expect(m, id).toBeDefined();
+    expect(m).toMatchObject({ home, away, hs, as, date: "2026-10-11", round: "Round 1", group: id.split("-")[3] });
+    expect(m!.source, id).toMatch(/^https:\/\/www\.the-afc\.com\/en\/national\/afc_u17_womens_asian_cup\.html\/news\/qualifiers-group-/);
+  });
+
+  it("has matchday 1 and 2 plus the 12 final matchday 3 matches", () => {
+    expect(q).toHaveLength(26 + 12);
+    expect(q.filter((m) => m.date === "2026-10-11")).toHaveLength(12);
+  });
+
+  it("leaves unfinished TJK v UAE out", () => {
+    expect(q.find((m) => m.id === "2027-Q-R1-A-06")).toBeUndefined();
+  });
+
+  it("reconciles every group table with Wikipedia", () => {
+    for (const [g, teams] of Object.entries(TABLES_2027)) {
+      for (const [t, want] of Object.entries(teams)) {
+        const own = q.filter((m) => m.group === g && (m.home === t || m.away === t));
+        const gf = own.reduce((n, m) => n + (m.home === t ? m.hs : m.as), 0);
+        const ga = own.reduce((n, m) => n + (m.home === t ? m.as : m.hs), 0);
+        const w = own.filter((m) => (m.home === t ? m.hs > m.as : m.as > m.hs)).length;
+        const d = own.filter((m) => m.hs === m.as).length;
+        expect([w, d, own.length - w - d, gf, ga], `group ${g} ${t}`).toEqual(want);
+      }
+    }
+  });
+
+  it("has each final group's winner on top, with all its matches played", () => {
+    for (const g of FINAL_GROUPS_2027) {
+      const teams = Object.keys(TABLES_2027[g]);
+      expect(q.filter((m) => m.group === g), `group ${g} matches`).toHaveLength((teams.length * (teams.length - 1)) / 2);
+      const pts = (t: string) => TABLES_2027[g][t][0] * 3 + TABLES_2027[g][t][1];
+      const top = [...teams].sort((a, b) => pts(b) - pts(a))[0];
+      expect(top, `group ${g} winner`).toBe(WINNERS_2027[g]);
+    }
+  });
+
+  it("has Myanmar's 2–1 win over Hong Kong in group G, 11 October", () => {
+    const hkg = q.filter((m) => m.home === "HKG" || m.away === "HKG");
+    expect(hkg.map((m) => m.id)).toEqual(["2027-Q-R1-G-02", "2027-Q-R1-G-03"]);
+    expect(hkg[1]).toMatchObject({ home: "MYA", away: "HKG", hs: 2, as: 1, venue: "Thuwunna Stadium, Yangon" });
+  });
+});
