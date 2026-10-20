@@ -29,11 +29,6 @@ function rule(sheet: string, pick: (selector: string) => boolean, last = false):
   return m ? m[2].replace(/\s+/g, " ").trim() : "";
 }
 const norm = (s: string) => s.replace(/:not\(\.[a-z-]+\)/g, "").replace(/\.stack\b/g, "");
-/** The same rule in a container block, by selector with its :not() guards removed; the event-page block
- *  scopes every table.matches rule to .no-res, and `last` picks the later of two rules (its no-res override). */
-const inBlock = (b: string, selector: string, last = false) =>
-  rule(b, (s) => norm(s) === selector || norm(s) === selector.replace("table.matches ", "table.matches.no-res ").replace("table.matches:", "table.matches.no-res:"), last);
-
 /** The stacked-table rules: every top-level rule whose selectors all name `.stack`. */
 const stackRules = [...css.replace(/@media[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, "").matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((m) => /\.stack\b/.test(m[1]));
 const stackSheet = stackRules.map((m) => `${m[1].trim()} {${m[2]}}`).join("\n");
@@ -107,7 +102,7 @@ describe("the .stack CSS is the phone layout, with no width thresholds (#56)", (
     expect(inStack("table.matches.no-res tbody tr", true)).toContain('"home score away"');
     expect(inStack("table.matches td.c-meta")).toMatch(/display:\s*block/);
     expect(inStack("table.matches td.c-date")).toMatch(/display:\s*none/);
-    expect(inStack("table.matches td .team")).toMatch(/white-space:\s*normal/);
+    expect(inStack("table td .team")).toMatch(/white-space:\s*normal/);
   });
 
   it("8. the .stack rules repeat the phone block's declarations (no drift)", () => {

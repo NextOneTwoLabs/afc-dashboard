@@ -177,7 +177,7 @@ main.wrap { padding-bottom: 40px; }
 .grid { display: grid; gap: 16px; }
 .cols-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); }
 .cols-3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
-.card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; min-width: 0; container-type: inline-size; } /* the container the tablet table queries below measure (#56) */
+.card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; min-width: 0; }
 .card + .card, .grid + .card, .card + .grid, .grid + .grid { margin-top: 16px; }
 .grid > .card { margin-top: 0; }
 .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
@@ -352,78 +352,46 @@ select, input[type="search"] { font: inherit; font-size: 14px; padding: 7px 10px
   td .yr-comp { display: block; margin-top: 2px; }
 }
 
-/* ===== Tablet and narrow desktop: the phone layout wherever the card is too narrow for the table (#56) =====
-   Below 560px the media query above does it for everything. Between 561px and about 1100px the same stacked
-   rows and summary blocks apply when the CARD is narrower than the table, which is what overflowed: the half-width
-   group lists on event pages, and the team page's match tables. The thresholds sit just above the widest tables in
-   the data (team pages ~1070px, event lists ~860px, summary ~610px, standings and By edition ~520px) and below the
-   card of a 1280px viewport (1090px wide, half-width 520px), so tables that fit keep the desktop layout. The
-   All events .fit tables wrap instead (#53) and are excluded. Keep these in step with the phone block (tests/tablet-tables.test.ts). */
-@container (max-width: 519px) {
-  .hide-sm { display: none; }
-  .hide-lg { display: revert; }
-  table:has(.hide-sm) th, table:has(.hide-sm) td { padding: 8px 4px; } /* standings and By edition, as on phones; the first block, so the stacked tables' own padding wins */
-  td .yr-comp { display: block; margin-top: 2px; }
-}
-@container (max-width: 1080px) {
-  table.matches:not(.no-res):not(.fit) thead { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; } /* visually hidden, still the columns' headers */
-  table.matches:not(.no-res):not(.fit) thead th.c-ed, table.matches:not(.no-res):not(.fit) thead th.c-stage { display: none; }
-  table.matches:not(.no-res):not(.fit) tbody tr {
+/* ===== Tablet and narrow desktop: the phone layout for a table that cannot fit its card (#56) =====
+   src/fit.ts adds .stack to a table exactly when its natural width overflows its card, at any width; there are no
+   width thresholds here. Below 560px the media query above applies to everything and .stack is not needed.
+   These repeat the phone block's rules (kept in step by tests/tablet-tables.test.ts). Standings and By edition
+   tables drop their secondary columns instead of stacking. The cell padding comes first so the stacked tables'
+   own padding: 0 below still wins. */
+table.stack:has(.hide-sm) th, table.stack:has(.hide-sm) td { padding: 8px 4px; }
+table.stack .hide-sm { display: none; }
+table.stack .hide-lg { display: revert; }
+table.stack td .yr-comp { display: block; margin-top: 2px; }
+table.stack td .team { white-space: normal; }
+  table.matches.stack thead { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; } /* visually hidden, still the columns' headers */
+  table.matches.stack thead th.c-ed, table.matches.stack thead th.c-stage { display: none; }
+  table.matches.stack tbody tr {
     display: grid; align-items: center; column-gap: 8px; row-gap: 2px; padding: 8px 4px;
     grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
     grid-template-areas: "meta meta meta src" "res home score away";
     border-bottom: 1px solid var(--border-light);
   }
-  table.matches:not(.no-res):not(.fit) tbody tr:last-child { border-bottom: none; }
-  table.matches:not(.no-res):not(.fit) td { display: block; padding: 0; border: 0; white-space: normal; background: none; }
-  table.matches:not(.no-res):not(.fit) td.c-date, table.matches:not(.no-res):not(.fit) td.c-ed, table.matches:not(.no-res):not(.fit) td.c-stage { display: none; }
-  table.matches:not(.no-res):not(.fit) td.c-meta { display: block; grid-area: meta; font-size: 12px; color: var(--text-secondary); }
-  table.matches:not(.no-res):not(.fit) td.c-venue { display: block; grid-area: src; text-align: right; }
-  table.matches:not(.no-res):not(.fit) td.c-venue .venue-name { display: none; }
-  table.matches:not(.no-res):not(.fit) td.c-res { grid-area: res; }
-  table.matches:not(.no-res):not(.fit) td.c-home { grid-area: home; text-align: right; }
-  table.matches:not(.no-res):not(.fit) td.c-score { grid-area: score; text-align: center; white-space: nowrap; }
-  table.matches:not(.no-res):not(.fit) td.c-away { grid-area: away; }
-  table.matches:not(.no-res):not(.fit) tr.hk { background: var(--gold-glow); box-shadow: inset 3px 0 0 var(--gold); }
-  table.matches:not(.no-res):not(.fit) tr.hk td { background: none; box-shadow: none; }
-  table.matches:not(.no-res):not(.fit) tbody tr:hover { background: var(--row-hover); }
-  table.matches:not(.no-res):not(.fit) tbody tr:hover td { background: none; }
-  table.matches:not(.no-res):not(.fit) td .team { white-space: normal; }
-}
-@container (max-width: 880px) {
-  table.matches.no-res:not(.fit) thead { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; } /* visually hidden, still the columns' headers */
-  table.matches.no-res:not(.fit) thead th.c-ed, table.matches.no-res:not(.fit) thead th.c-stage { display: none; }
-  table.matches.no-res:not(.fit) tbody tr {
-    display: grid; align-items: center; column-gap: 8px; row-gap: 2px; padding: 8px 4px;
-    grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
-    grid-template-areas: "meta meta meta src" "res home score away";
-    border-bottom: 1px solid var(--border-light);
-  }
-  table.matches.no-res:not(.fit) tbody tr { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "meta meta src" "home score away"; }
-  table.matches.no-res:not(.fit) tbody tr:last-child { border-bottom: none; }
-  table.matches.no-res:not(.fit) td { display: block; padding: 0; border: 0; white-space: normal; background: none; }
-  table.matches.no-res:not(.fit) td.c-date, table.matches.no-res:not(.fit) td.c-ed, table.matches.no-res:not(.fit) td.c-stage { display: none; }
-  table.matches.no-res:not(.fit) td.c-meta { display: block; grid-area: meta; font-size: 12px; color: var(--text-secondary); }
-  table.matches.no-res:not(.fit) td.c-venue { display: block; grid-area: src; text-align: right; }
-  table.matches.no-res:not(.fit) td.c-venue .venue-name { display: none; }
-  table.matches.no-res:not(.fit) td.c-res { grid-area: res; }
-  table.matches.no-res:not(.fit) td.c-home { grid-area: home; text-align: right; }
-  table.matches.no-res:not(.fit) td.c-score { grid-area: score; text-align: center; white-space: nowrap; }
-  table.matches.no-res:not(.fit) td.c-away { grid-area: away; }
-  table.matches.no-res:not(.fit) tr.hk { background: var(--gold-glow); box-shadow: inset 3px 0 0 var(--gold); }
-  table.matches.no-res:not(.fit) tr.hk td { background: none; box-shadow: none; }
-  table.matches.no-res:not(.fit) tbody tr:hover { background: var(--row-hover); }
-  table.matches.no-res:not(.fit) tbody tr:hover td { background: none; }
-  table.matches.no-res:not(.fit) td .team { white-space: normal; }
-}
-@container (max-width: 620px) {
-  table.summary thead { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
-  table.summary tbody tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 10px; padding: 10px 2px; border-bottom: 1px solid var(--border-light); }
-  table.summary tbody tr:last-child { border-bottom: none; }
-  table.summary tbody tr.total { border-top: 1px solid var(--border); }
-  table.summary td { display: block; padding: 0; border: 0; white-space: normal; text-align: left; background: none; }
-  table.summary td.s-comp { grid-column: 1 / -1; }
-  table.summary td[data-label]::before { content: attr(data-label); display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
-  table.summary tr.total td { border-top: 0; }
-  table.summary tbody tr:hover { background: var(--row-hover); }
-}
+  table.matches.no-res.stack tbody tr { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "meta meta src" "home score away"; }
+  table.matches.stack tbody tr:last-child { border-bottom: none; }
+  table.matches.stack td { display: block; padding: 0; border: 0; white-space: normal; background: none; }
+  table.matches.stack td.c-date, table.matches.stack td.c-ed, table.matches.stack td.c-stage { display: none; }
+  table.matches.stack td.c-meta { display: block; grid-area: meta; font-size: 12px; color: var(--text-secondary); }
+  table.matches.stack td.c-venue { display: block; grid-area: src; text-align: right; }
+  table.matches.stack td.c-venue .venue-name { display: none; }
+  table.matches.stack td.c-res { grid-area: res; }
+  table.matches.stack td.c-home { grid-area: home; text-align: right; }
+  table.matches.stack td.c-score { grid-area: score; text-align: center; white-space: nowrap; }
+  table.matches.stack td.c-away { grid-area: away; }
+  table.matches.stack tr.hk { background: var(--gold-glow); box-shadow: inset 3px 0 0 var(--gold); }
+  table.matches.stack tr.hk td { background: none; box-shadow: none; }
+  table.matches.stack tbody tr:hover { background: var(--row-hover); }
+  table.matches.stack tbody tr:hover td { background: none; }
+  table.summary.stack thead { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+  table.summary.stack tbody tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 10px; padding: 10px 2px; border-bottom: 1px solid var(--border-light); }
+  table.summary.stack tbody tr:last-child { border-bottom: none; }
+  table.summary.stack tbody tr.total { border-top: 1px solid var(--border); }
+  table.summary.stack td { display: block; padding: 0; border: 0; white-space: normal; text-align: left; background: none; }
+  table.summary.stack td.s-comp { grid-column: 1 / -1; }
+  table.summary.stack td[data-label]::before { content: attr(data-label); display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+  table.summary.stack tr.total td { border-top: 0; }
+  table.summary.stack tbody tr:hover { background: var(--row-hover); }
