@@ -26,13 +26,16 @@ const phone = (() => {
   return body(css, css.indexOf("{", at));
 })();
 /** Declarations of the first rule in `sheet` whose selector list has a selector satisfying `pick`. */
-function rule(sheet: string, pick: (selector: string) => boolean): string {
-  for (const m of sheet.matchAll(/([^{}]+)\{([^{}]*)\}/g)) if (m[1].split(",").some((s) => pick(s.trim()))) return m[2].replace(/\s+/g, " ").trim();
-  return "";
+function rule(sheet: string, pick: (selector: string) => boolean, last = false): string {
+  const hits = [...sheet.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((m) => m[1].split(",").some((s) => pick(s.trim())));
+  const m = last ? hits[hits.length - 1] : hits[0];
+  return m ? m[2].replace(/\s+/g, " ").trim() : "";
 }
 const norm = (s: string) => s.replace(/:not\(\.[a-z-]+\)/g, "");
-/** The same rule (by selector with its :not() guards removed) in a container block. */
-const inBlock = (b: string, selector: string) => rule(b, (s) => norm(s) === selector);
+/** The same rule in a container block, by selector with its :not() guards removed; the event-page block
+ *  scopes every table.matches rule to .no-res, and `last` picks the later of two rules (its no-res override). */
+const inBlock = (b: string, selector: string, last = false) =>
+  rule(b, (s) => norm(s) === selector || norm(s) === selector.replace("table.matches ", "table.matches.no-res ").replace("table.matches:", "table.matches.no-res:"), last);
 
 const blockFor = (pick: (b: { max: number; body: string }) => boolean) => containerBlocks().find(pick)?.body ?? "";
 const teamMatches = blockFor((b) => /table\.matches:not\(\.no-res\)/.test(b.body));
@@ -81,7 +84,7 @@ describe("tablet and narrow-desktop tables use the phone layout when their card 
       expect(inBlock(b, "table.matches td .team"), "team names wrap beside their flag").toMatch(/white-space:\s*normal/);
     }
     expect(inBlock(teamMatches, "table.matches tbody tr")).toContain('"res home score away"');
-    expect(inBlock(eventMatches, "table.matches.no-res tbody tr")).toContain('"home score away"');
+    expect(inBlock(eventMatches, "table.matches.no-res tbody tr", true)).toContain('"home score away"');
   });
 
   it("5. the container blocks repeat the phone block's declarations for the shared rules (no drift)", () => {
@@ -97,7 +100,7 @@ describe("tablet and narrow-desktop tables use the phone layout when their card 
       }
       expect(inBlock(b, "table.matches tbody tr")).toBe(rule(phone, (s) => s === "table.matches tbody tr"));
     }
-    expect(inBlock(eventMatches, "table.matches.no-res tbody tr")).toBe(rule(phone, (s) => s === "table.matches.no-res tbody tr"));
+    expect(inBlock(eventMatches, "table.matches.no-res tbody tr", true)).toBe(rule(phone, (s) => s === "table.matches.no-res tbody tr"));
   });
 
   it("6. Summary: the labelled blocks, header visually hidden, like on phones", () => {
@@ -116,6 +119,13 @@ describe("tablet and narrow-desktop tables use the phone layout when their card 
     expect(inBlock(columnsBlock, ".hide-sm")).toMatch(/display:\s*none/);
     expect(inBlock(columnsBlock, ".hide-lg")).toMatch(/display:\s*revert/);
     expect(inBlock(columnsBlock, "td .yr-comp")).toMatch(/display:\s*block/);
+    expect(rule(columnsBlock, (s) => s === "table:has(.hide-sm) td")).toMatch(/padding:\s*8px 4px/); // the phone's cell padding: a 3-team standings still overflowed by 4px at 1024px
+  });
+
+  it("7b. that cell padding comes before the stacked tables' rules, so their padding:0 still wins", () => {
+    const at = (re: RegExp) => css.search(re);
+    expect(at(/@container \(max-width: 519px\)/)).toBeLessThan(at(/@container \(max-width: 1080px\)/));
+    expect(at(/@container \(max-width: 519px\)/)).toBeLessThan(at(/@container \(max-width: 620px\)/));
   });
 
   it("8. the phone block is untouched: it still carries every table rule", () => {
