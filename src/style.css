@@ -170,7 +170,7 @@ main.wrap { padding-bottom: 40px; }
 .page-head .lede { margin: 4px 0 0; }
 .controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-bottom: 16px; }
 
-.banner { border: 1px solid var(--border); background: var(--bg-surface-alt); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); }
+.banner { border: 1px solid var(--border); background: var(--bg-surface-alt); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); overflow-wrap: anywhere; }
 .banner strong { color: var(--text-primary); }
 
 /* ===== Cards, tiles, grids ===== */
