@@ -8,6 +8,23 @@ export const FOCUS = "HKG";
 export const esc = (s: unknown) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
+/** Escape note text and turn http(s) URLs into short labelled links (host name). Nothing else becomes markup. */
+export function linkifyNote(text: string): string {
+  return String(text ?? "")
+    .split(/(https?:\/\/[^\s<>"'()]+)/)
+    .map((part, i) => {
+      if (i % 2 === 0) return esc(part);
+      let host: string;
+      try {
+        host = new URL(part).host;
+      } catch {
+        return esc(part);
+      }
+      return `<a href="${esc(part)}" target="_blank" rel="noopener">${esc(host)} ↗</a>`;
+    })
+    .join("");
+}
+
 export const teamName = (ds: Dataset, code: string) => ds.teams.get(code)?.name ?? code;
 
 /** ISO 3166 alpha-2 (lower case) from a flag emoji's two regional-indicator letters. */
