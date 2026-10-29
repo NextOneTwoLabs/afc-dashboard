@@ -10,6 +10,7 @@ The owner's standing rules and lessons learned, one fact per file. `ready-pr-che
 - `flags-and-tpe.md`: team flags are self-hosted SVG images; Chinese Taipei shows none.
 - `fresh-start-saves-cost.md`: start agents fresh at task boundaries to save cost.
 - `inter-font-npm.md`: get Inter from the npm registry as a pinned, bundled package.
+- `npx-blocked.md`: npx is blocked by a project setting (`.claude/settings.json`); run tests through package.json scripts.
 - `no-friendlies.md`: record only AFC-organized tournaments, never friendlies.
 - `pr-cost-reporting.md`: report tokens and dollar cost for every PR, using `.claude/tools/pr-cost.py`.
 - `restyle-decisions.md`: the owner's restyle choices (#39).
