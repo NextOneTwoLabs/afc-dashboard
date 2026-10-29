@@ -351,3 +351,47 @@ select, input[type="search"] { font: inherit; font-size: 14px; padding: 7px 10px
   /* By edition: the competition badge sits under the year, so the Competition column can go. */
   td .yr-comp { display: block; margin-top: 2px; }
 }
+
+/* ===== Tablet and narrow desktop: the phone layout for a table that cannot fit its card (#56) =====
+   src/fit.ts adds .stack to a table exactly when its natural width overflows its card, at any width; there are no
+   width thresholds here. Below 560px the media query above applies to everything and .stack is not needed.
+   These repeat the phone block's rules (kept in step by tests/tablet-tables.test.ts). Standings and By edition
+   tables drop their secondary columns instead of stacking. The cell padding comes first so the stacked tables'
+   own padding: 0 below still wins. */
+table.stack:has(.hide-sm) th, table.stack:has(.hide-sm) td { padding: 8px 4px; }
+table.stack .hide-sm { display: none; }
+table.stack .hide-lg { display: revert; }
+table.stack td .yr-comp { display: block; margin-top: 2px; }
+table.stack td .team { white-space: normal; }
+  table.matches.stack thead { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; } /* visually hidden, still the columns' headers */
+  table.matches.stack thead th.c-ed, table.matches.stack thead th.c-stage { display: none; }
+  table.matches.stack tbody tr {
+    display: grid; align-items: center; column-gap: 8px; row-gap: 2px; padding: 8px 4px;
+    grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-areas: "meta meta meta src" "res home score away";
+    border-bottom: 1px solid var(--border-light);
+  }
+  table.matches.no-res.stack tbody tr { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "meta meta src" "home score away"; }
+  table.matches.stack tbody tr:last-child { border-bottom: none; }
+  table.matches.stack td { display: block; padding: 0; border: 0; white-space: normal; background: none; }
+  table.matches.stack td.c-date, table.matches.stack td.c-ed, table.matches.stack td.c-stage { display: none; }
+  table.matches.stack td.c-meta { display: block; grid-area: meta; font-size: 12px; color: var(--text-secondary); }
+  table.matches.stack td.c-venue { display: block; grid-area: src; text-align: right; }
+  table.matches.stack td.c-venue .venue-name { display: none; }
+  table.matches.stack td.c-res { grid-area: res; }
+  table.matches.stack td.c-home { grid-area: home; text-align: right; }
+  table.matches.stack td.c-score { grid-area: score; text-align: center; white-space: nowrap; }
+  table.matches.stack td.c-away { grid-area: away; }
+  table.matches.stack tr.hk { background: var(--gold-glow); box-shadow: inset 3px 0 0 var(--gold); }
+  table.matches.stack tr.hk td { background: none; box-shadow: none; }
+  table.matches.stack tbody tr:hover { background: var(--row-hover); }
+  table.matches.stack tbody tr:hover td { background: none; }
+  table.summary.stack thead { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+  table.summary.stack tbody tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 10px; padding: 10px 2px; border-bottom: 1px solid var(--border-light); }
+  table.summary.stack tbody tr:last-child { border-bottom: none; }
+  table.summary.stack tbody tr.total { border-top: 1px solid var(--border); }
+  table.summary.stack td { display: block; padding: 0; border: 0; white-space: normal; text-align: left; background: none; }
+  table.summary.stack td.s-comp { grid-column: 1 / -1; }
+  table.summary.stack td[data-label]::before { content: attr(data-label); display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+  table.summary.stack tr.total td { border-top: 0; }
+  table.summary.stack tbody tr:hover { background: var(--row-hover); }

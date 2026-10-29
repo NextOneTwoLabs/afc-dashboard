@@ -22,6 +22,7 @@ import { edition } from "./views/edition";
 import { events } from "./views/events";
 import { team } from "./views/team";
 import { FOCUS } from "./ui";
+import { fitTables, watchTables } from "./fit";
 
 // ?demo loads the fictional fixture (years 2099/2101) for UI development.
 const demo = new URLSearchParams(location.search).has("demo");
@@ -60,6 +61,7 @@ function route() {
       : "";
 
   app.innerHTML = banner + html;
+  fitTables(app); // before the browser paints: tables that cannot fit their card take the stacked layout (#56)
   nav.innerHTML = TABS.map(([k, label]) => `<a href="#/${k}" ${k === view ? 'aria-current="page"' : ""}>${label}</a>`).join("");
   const page =
     view === "team"
@@ -133,6 +135,7 @@ themeBtn.addEventListener("click", () => {
 });
 applyTheme();
 
+watchTables(app);
 window.addEventListener("hashchange", () => {
   route();
   window.scrollTo(0, 0);
