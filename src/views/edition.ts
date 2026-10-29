@@ -2,7 +2,7 @@ import { forCompetition, sameEdition, type Competition, type Dataset, type Editi
 import { groups, isKnockout, standings, winner } from "../stats";
 import { COMP, eventHref } from "../competitions";
 import { latestEvent } from "../routes";
-import { FOCUS, emptyData, esc, fmtDate, matchTable, pageHead, teamLink } from "../ui";
+import { FOCUS, emptyData, esc, fmtDate, linkifyNote, matchTable, pageHead, teamLink } from "../ui";
 import { competitionNav } from "./events";
 
 /**
@@ -103,7 +103,7 @@ export function edition(all: Dataset, yearParam?: string, competition: Competiti
       ${ed.source ? ` · <a href="${esc(ed.source)}" target="_blank" rel="noopener">Source ↗</a>` : ""}`;
   return `${pageHead([[`All ${COMP[competition].label} events`, eventHref(competition)], [String(ed.year)]], `${ed.year} ${esc(ed.name)}`, sub)}
     <div class="controls">${nav}</div>
-    ${ed.notes ? `<div class="banner">${esc(ed.notes)}</div>` : ""}
+    ${ed.notes ? `<div class="banner">${linkifyNote(ed.notes)}</div>` : ""}
     <div class="card">${podium}</div>
     ${body || (ed.status === "completed" ? `<div style="margin-top:16px">${emptyData()}</div>` : "")}`;
 }
